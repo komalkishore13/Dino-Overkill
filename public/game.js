@@ -946,7 +946,7 @@ function drawCollectible(c) {
     ctx.restore();
 }
 
-function drawPowerTimerBar(frac, blink) {
+function drawPowerTimerBar(frac, blink, message, seconds) {
     const barH = 8;
     const barY = GROUND_LINE + 20;
     const fillW = CANVAS_WIDTH * frac;
@@ -988,6 +988,16 @@ function drawPowerTimerBar(frac, blink) {
         }
     }
 
+    ctx.restore();
+
+    // Message below the bar
+    ctx.save();
+    ctx.globalAlpha = 0.8 * blink;
+    const textV = lerpV(50, 200);
+    ctx.fillStyle = `rgb(${textV}, ${textV}, ${textV})`;
+    ctx.font = 'bold 13px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(message + ' ' + seconds + 's', CANVAS_WIDTH / 2, barY + barH + 16);
     ctx.restore();
 }
 
@@ -1035,7 +1045,7 @@ function drawImmunityEffect() {
     }
 
     // Full-width timer bar below ground line
-    drawPowerTimerBar(remainMs / IMMUNITY_DURATION_MS, blink);
+    drawPowerTimerBar(remainMs / IMMUNITY_DURATION_MS, blink, 'Immune for', Math.ceil(remainMs / 1000));
 
     ctx.restore();
 }
@@ -1092,7 +1102,7 @@ function drawDashEffect() {
     });
 
     // Full-width timer bar below ground line
-    drawPowerTimerBar(remaining / DASH_DURATION_MS, blink);
+    drawPowerTimerBar(remaining / DASH_DURATION_MS, blink, 'Dashing for', Math.ceil(remaining / 1000));
 
     // Small dash icon above dino
     const dcx = dino.x + dino.width / 2;
@@ -1123,7 +1133,7 @@ function drawMultiplierEffect() {
     }
 
     // Full-width timer bar below ground line
-    drawPowerTimerBar(remainMs / MULTIPLIER_DURATION_MS, blink);
+    drawPowerTimerBar(remainMs / MULTIPLIER_DURATION_MS, blink, 'Score multiplied for', Math.ceil(remainMs / 1000));
 
     // "2X" text on HUD (top right area, below score)
     ctx.globalAlpha = 0.8 * blink;
