@@ -937,9 +937,10 @@ function updateCollectibles() {
         h.x -= gameSpeed;
         h.bobPhase += 0.05;
 
-        // Off-screen removal
+        // Off-screen removal — advance threshold so next spawns at next 100
         if (h.x + h.width < 0) {
             healthHeads.splice(i, 1);
+            healthNextSpawnScore = (Math.floor(score / 100) + 1) * 100;
             continue;
         }
 
@@ -955,7 +956,7 @@ function updateCollectibles() {
             if (dinoHeadPickups < MAX_DINO_PICKUPS) {
                 dinoHeadPickups++;
             }
-            healthNextSpawnScore = score + 100;
+            healthNextSpawnScore = (Math.floor(score / 100) + 1) * 100;
         }
     }
 
