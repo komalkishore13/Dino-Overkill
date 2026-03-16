@@ -1037,15 +1037,15 @@ function getHealthColor() {
     return { r, g, b, hex: `rgb(${r},${g},${b})` };
 }
 
-function drawTintedDinoHead(destCtx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+function drawTintedDinoHead(destCtx, img, sx, sy, sw, sh, dx, dy, dw, dh, colorOverride) {
     if (!img.complete) return;
-    const col = getHealthColor();
+    const col = colorOverride || getHealthColor().hex;
     _tintCanvas.width = dw;
     _tintCanvas.height = dh;
     _tintCtx.clearRect(0, 0, dw, dh);
     _tintCtx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
     _tintCtx.globalCompositeOperation = 'source-atop';
-    _tintCtx.fillStyle = col.hex;
+    _tintCtx.fillStyle = col;
     _tintCtx.fillRect(0, 0, dw, dh);
     _tintCtx.globalCompositeOperation = 'source-over';
     destCtx.drawImage(_tintCanvas, dx, dy);
@@ -1082,9 +1082,9 @@ function drawHealthHUD() {
     const boxX = 6;
     const boxY = HUD_Y - 16;
     const boxW = Math.max(headsW, 80) + pad * 2 + 6;
-    const boxH = headDrawH + 24 + pad * 2;
+    const boxH = headDrawH + 30 + pad * 2;
     const headStartX = boxX + pad + 3;
-    const headStartY = boxY + pad + 20;
+    const headStartY = boxY + pad + 24;
     const fullHeads = Math.floor(dinoHeadPickups / 2);
     const hasHalf = dinoHeadPickups % 2 === 1;
 
@@ -1105,10 +1105,10 @@ function drawHealthHUD() {
 
     // Player name inside the box
     if (currentUsername) {
-        ctx.fillStyle = `rgb(${borderV},${borderV},${borderV})`;
-        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 16px "Courier New", monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(currentUsername.toUpperCase(), headStartX, boxY + pad + 12);
+        ctx.fillText(currentUsername.toUpperCase(), headStartX, boxY + pad + 14);
     }
 
     // Blink HUD heads during health hit immunity (matches dino blink)
@@ -1124,18 +1124,16 @@ function drawHealthHUD() {
                 drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
                     hx, hy, headSize, headDrawH);
             } else if (i === fullHeads && hasHalf) {
-                // Top half — faded gray
+                // Top half — gray (unfilled)
                 ctx.save();
                 ctx.beginPath();
                 ctx.rect(hx, hy, headSize, headDrawH / 2);
                 ctx.clip();
-                ctx.globalAlpha = 0.25;
-                if (dinoIdleImg.complete) {
-                    ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                        hx, hy, headSize, headDrawH);
-                }
+                ctx.globalAlpha = 0.6;
+                drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                    hx, hy, headSize, headDrawH, '#888888');
                 ctx.restore();
-                // Bottom half — filled
+                // Bottom half — filled (green/red)
                 ctx.save();
                 ctx.beginPath();
                 ctx.rect(hx, hy + headDrawH / 2, headSize, headDrawH / 2);
@@ -1145,11 +1143,10 @@ function drawHealthHUD() {
                     hx, hy, headSize, headDrawH);
                 ctx.restore();
             } else {
-                ctx.globalAlpha = 0.25;
-                if (dinoIdleImg.complete) {
-                    ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                        hx, hy, headSize, headDrawH);
-                }
+                // Empty head — gray
+                ctx.globalAlpha = 0.6;
+                drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                    hx, hy, headSize, headDrawH, '#888888');
             }
         }
     }
