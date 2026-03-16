@@ -1080,7 +1080,7 @@ function drawHealthHUD() {
     const pad = 8;
     const headsW = 5 * headSize + 4 * gap;
     const boxX = 6;
-    const boxY = HUD_Y - 16;
+    const boxY = 6;
     const boxW = Math.max(headsW, 80) + pad * 2 + 6;
     const boxH = headDrawH + 30 + pad * 2;
     const headStartX = boxX + pad + 3;
