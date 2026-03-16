@@ -918,17 +918,12 @@ function updateCollectibles() {
     updateDash();
 
     // ======== HEALTH HEADS ========
-    // Spawn logic
-    if (HEALTH_TESTING) {
-        // Testing: spawn within first 2 seconds
-        if (healthHeads.length === 0 && frameCount > 60 && frameCount < 180) {
-            spawnHealthHead();
-        }
-    } else {
-        // Normal: spawn every 100 score
-        if (healthHeads.length === 0 && score >= healthNextSpawnScore) {
-            spawnHealthHead();
-        }
+    // Spawn logic — every 100 score (testing: also spawn first one early)
+    if (healthHeads.length === 0 && score >= healthNextSpawnScore) {
+        spawnHealthHead();
+    }
+    if (HEALTH_TESTING && healthHeads.length === 0 && frameCount > 60 && frameCount < 180 && dinoHeadPickups === 0) {
+        spawnHealthHead();
     }
 
     // Move health heads left
