@@ -12,8 +12,8 @@ const MONGO_URI = process.env.MONGO_URI ||
 app.use(cors());
 app.use(express.json());
 
-// Serve static files (index.html, game.js, style.css, images)
-app.use(express.static(path.join(__dirname)));
+// Serve static files for local development
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Cache MongoDB connection for serverless (Vercel reuses containers)
 let isConnected = false;
