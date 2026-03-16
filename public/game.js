@@ -1082,7 +1082,7 @@ function drawHealthHUD() {
             drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
                 hx, hy, headSize, headSize * 0.8);
         } else if (i === fullHeads && hasHalf) {
-            // Half head — clip left half filled, right half empty
+            // Half head — left half red, right half faded gray
             ctx.save();
             ctx.beginPath();
             ctx.rect(hx, hy, headSize / 2, headSize);
@@ -1091,20 +1091,24 @@ function drawHealthHUD() {
             drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
                 hx, hy, headSize, headSize * 0.8);
             ctx.restore();
-            // Right half outline
+            // Right half — faded original sprite (gray, not red)
             ctx.save();
             ctx.beginPath();
             ctx.rect(hx + headSize / 2, hy, headSize / 2, headSize);
             ctx.clip();
             ctx.globalAlpha = 0.25;
-            drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                hx, hy, headSize, headSize * 0.8);
+            if (dinoIdleImg.complete) {
+                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                    hx, hy, headSize, headSize * 0.8);
+            }
             ctx.restore();
         } else {
-            // Empty head — faded brown outline
+            // Empty head — faded gray original sprite
             ctx.globalAlpha = 0.25;
-            drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                hx, hy, headSize, headSize * 0.8);
+            if (dinoIdleImg.complete) {
+                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                    hx, hy, headSize, headSize * 0.8);
+            }
         }
     }
     ctx.restore();
