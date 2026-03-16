@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Overkill</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas" width="1200" height="300"></canvas>
+        <div id="score-container">
+            <div id="score-display">Score: 0</div>
+            <div id="high-score-display">HI: 0</div>
+        </div>
+        <div id="game-over" class="hidden"></div>
+    </div>
+
+    <!-- MetaMask Connect Screen -->
+    <div id="connect-screen" class="overlay">
+        <div class="overlay-box">
+            <h1>D I N O<br>O V E R K I L L</h1>
+            <button id="connect-btn" class="btn btn-primary">Connect with MetaMask</button>
+            <p id="connect-error" class="error-text"></p>
+        </div>
+    </div>
+
+    <!-- Username Setup Screen -->
+    <div id="username-screen" class="overlay hidden">
+        <div class="overlay-box">
+            <h2>Create Player</h2>
+            <p id="wallet-address-display" class="wallet-addr"></p>
+            <p class="label">Choose your username:</p>
+            <input type="text" id="username-input" maxlength="16" placeholder="Enter username" autocomplete="off">
+            <p id="username-error" class="error-text"></p>
+            <button id="username-btn" class="btn btn-primary">Continue</button>
+            <button id="username-back-btn" class="btn btn-secondary">Back</button>
+        </div>
+    </div>
+
+    <!-- Main Menu Screen -->
+    <div id="menu-screen" class="overlay hidden">
+        <div class="overlay-box">
+            <h1>D I N O<br>O V E R K I L L</h1>
+            <p id="menu-welcome" class="welcome-text"></p>
+            <p id="menu-best" class="best-score-text"></p>
+            <div class="menu-buttons">
+                <p class="space-hint">Press SPACE to Start</p>
+                <button id="menu-leaderboard-btn" class="btn">Leaderboard</button>
+                <button id="menu-highscores-btn" class="btn">High Scores</button>
+                <button id="menu-disconnect-btn" class="btn btn-secondary">Disconnect</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="leaderboard-screen" class="overlay hidden">
+        <div class="overlay-box overlay-wide">
+            <h2>L E A D E R B O A R D</h2>
+            <div id="leaderboard-table" class="score-table"></div>
+            <button id="leaderboard-back-btn" class="btn">Back</button>
+        </div>
+    </div>
+
+    <!-- Personal High Scores Screen -->
+    <div id="highscores-screen" class="overlay hidden">
+        <div class="overlay-box overlay-wide">
+            <h2 id="highscores-title"></h2>
+            <div id="highscores-table" class="score-table"></div>
+            <button id="highscores-back-btn" class="btn">Back</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
