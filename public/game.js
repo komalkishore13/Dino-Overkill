@@ -610,7 +610,7 @@ let skyBirds = [];
 
 function initSkyBirds() {
     skyBirds = [];
-    const count = 18 + Math.floor(Math.random() * 5); // 18-22 birds
+    const count = 33 + Math.floor(Math.random() * 5); // 33-37 birds
     for (let i = 0; i < count; i++) {
         skyBirds.push({
             x: Math.random() * CANVAS_WIDTH,
@@ -618,7 +618,7 @@ function initSkyBirds() {
             speed: 0.3 + Math.random() * 0.5,
             wingPhase: Math.random() * Math.PI * 2,
             wingSpeed: 0.08 + Math.random() * 0.06,
-            size: 3.6 + Math.random() * 4.8, // small silhouettes (20% bigger)
+            size: 4.3 + Math.random() * 5.8, // small silhouettes (20% bigger again)
             drift: Math.random() * 0.3 - 0.15 // slight vertical drift
         });
     }
