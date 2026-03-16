@@ -618,7 +618,7 @@ function initSkyBirds() {
             speed: 0.3 + Math.random() * 0.5,
             wingPhase: Math.random() * Math.PI * 2,
             wingSpeed: 0.08 + Math.random() * 0.06,
-            size: 3 + Math.random() * 4, // small silhouettes
+            size: 3.6 + Math.random() * 4.8, // small silhouettes (20% bigger)
             drift: Math.random() * 0.3 - 0.15 // slight vertical drift
         });
     }
@@ -1079,8 +1079,8 @@ function drawHealthHUD() {
     const gap = 6;
     const pad = 8;
     const headsW = 5 * headSize + 4 * gap;
-    const boxX = 246;
-    const boxY = 246;
+    const boxX = 102;
+    const boxY = 102;
     const boxW = Math.max(headsW, 80) + pad * 2 + 6;
     const boxH = headDrawH + 30 + pad * 2;
     const headStartX = boxX + pad + 3;
