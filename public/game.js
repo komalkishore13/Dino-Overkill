@@ -24,6 +24,10 @@ const menuBest = document.getElementById('menu-best');
 const menuLeaderboardBtn = document.getElementById('menu-leaderboard-btn');
 const menuHighscoresBtn = document.getElementById('menu-highscores-btn');
 const menuDisconnectBtn = document.getElementById('menu-disconnect-btn');
+const menuControlsBtn = document.getElementById('menu-controls-btn');
+
+const controlsScreen = document.getElementById('controls-screen');
+const controlsBackBtn = document.getElementById('controls-back-btn');
 
 const leaderboardScreen = document.getElementById('leaderboard-screen');
 const leaderboardTable = document.getElementById('leaderboard-table');
@@ -305,6 +309,8 @@ usernameInput.addEventListener('keydown', (e) => {
 });
 menuLeaderboardBtn.addEventListener('click', () => showLeaderboard(false));
 menuHighscoresBtn.addEventListener('click', showHighscores);
+menuControlsBtn.addEventListener('click', () => { appState = 'controls'; showScreen(controlsScreen); });
+controlsBackBtn.addEventListener('click', showMenu);
 menuDisconnectBtn.addEventListener('click', showConnectScreen);
 leaderboardBackBtn.addEventListener('click', showMenu);
 highscoresBackBtn.addEventListener('click', showMenu);
@@ -1738,7 +1744,7 @@ document.addEventListener('keydown', (e) => {
         }
     }
 
-    if (e.code === 'ArrowDown' && appState === 'playing' && gameState === 'running') {
+    if ((e.code === 'ArrowDown' || e.code === 'KeyS') && appState === 'playing' && gameState === 'running') {
         e.preventDefault();
         if (!dino.isDucking) {
             dino.isDucking = true;
@@ -1755,7 +1761,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keyup', (e) => {
-    if (e.code === 'ArrowDown' && appState === 'playing' && gameState === 'running') {
+    if ((e.code === 'ArrowDown' || e.code === 'KeyS') && appState === 'playing' && gameState === 'running') {
         dino.isDucking = false;
         dino.width = dino.standWidth;
         dino.height = dino.standHeight;
