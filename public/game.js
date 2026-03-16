@@ -465,7 +465,7 @@ const MULTIPLIER_COOLDOWN_MS = 10000; // 10 seconds after collection
 const MULTIPLIER_TESTING = false;
 
 // ======== DINO HEALTH SYSTEM ========
-const HEALTH_TESTING = true; // Testing mode: spawn head within 2s, no power-ups
+const HEALTH_TESTING = false;
 let dinoHeadPickups = 0; // 0-10, each pickup = half a HUD head
 const MAX_DINO_PICKUPS = 10; // 10 pickups = 5 full heads
 let healthHeads = []; // active head collectibles on screen
