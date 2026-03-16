@@ -1025,18 +1025,27 @@ function drawCollectible(c) {
     ctx.restore();
 }
 
-// Offscreen canvas for brown-tinting dino heads
+// Offscreen canvas for tinting dino heads
 const _tintCanvas = document.createElement('canvas');
 const _tintCtx = _tintCanvas.getContext('2d');
 
-function drawBrownDinoHead(destCtx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+function getHealthColor() {
+    // Green in day, cyan in night, interpolated
+    const r = Math.round(0 + (0 - 0) * themeT);
+    const g = Math.round(180 + (220 - 180) * themeT);
+    const b = Math.round(0 + (220 - 0) * themeT);
+    return { r, g, b, hex: `rgb(${r},${g},${b})` };
+}
+
+function drawTintedDinoHead(destCtx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
     if (!img.complete) return;
+    const col = getHealthColor();
     _tintCanvas.width = dw;
     _tintCanvas.height = dh;
     _tintCtx.clearRect(0, 0, dw, dh);
     _tintCtx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
     _tintCtx.globalCompositeOperation = 'source-atop';
-    _tintCtx.fillStyle = '#CC0000';
+    _tintCtx.fillStyle = col.hex;
     _tintCtx.fillRect(0, 0, dw, dh);
     _tintCtx.globalCompositeOperation = 'source-over';
     destCtx.drawImage(_tintCanvas, dx, dy);
@@ -1046,30 +1055,35 @@ function drawHealthHead(h) {
     const bob = Math.sin(h.bobPhase) * 4;
     const cx = h.x + h.width / 2;
     const cy = h.y + h.height / 2 + bob;
+    const col = getHealthColor();
 
     ctx.save();
-    // Glow (brown-tinted)
+    // Glow
     const glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, h.width);
-    glow.addColorStop(0, 'rgba(204, 0, 0, 0.3)');
-    glow.addColorStop(1, 'rgba(204, 0, 0, 0)');
+    glow.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, 0.3)`);
+    glow.addColorStop(1, `rgba(${col.r}, ${col.g}, ${col.b}, 0)`);
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(cx, cy, h.width, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw brown dino head
-    drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+    // Draw tinted dino head
+    drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
         cx - h.width / 2, cy - h.height / 2, h.width, h.height * 0.8);
     ctx.restore();
 }
 
 function drawHealthHUD() {
     const headSize = 22;
+    const headDrawH = Math.round(headSize * 0.8);
     const gap = 6;
     const startX = 15;
     const startY = HUD_Y + 16;
     const fullHeads = Math.floor(dinoHeadPickups / 2);
     const hasHalf = dinoHeadPickups % 2 === 1;
+
+    // Blink HUD heads during health hit immunity (matches dino blink)
+    if (healthHitImmune && Math.floor(Date.now() / 100) % 2 === 0) return;
 
     ctx.save();
     for (let i = 0; i < 5; i++) {
@@ -1077,37 +1091,38 @@ function drawHealthHUD() {
         const hy = startY;
 
         if (i < fullHeads) {
-            // Full head — brown dino head
+            // Full head — green/cyan tinted
             ctx.globalAlpha = 1;
-            drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                hx, hy, headSize, headSize * 0.8);
+            drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                hx, hy, headSize, headDrawH);
         } else if (i === fullHeads && hasHalf) {
-            // Half head — left half red, right half faded gray
+            // Half head — bottom half filled (green/cyan), top half faded gray
+            // Top half — faded gray
             ctx.save();
             ctx.beginPath();
-            ctx.rect(hx, hy, headSize / 2, headSize);
-            ctx.clip();
-            ctx.globalAlpha = 1;
-            drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                hx, hy, headSize, headSize * 0.8);
-            ctx.restore();
-            // Right half — faded original sprite (gray, not red)
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(hx + headSize / 2, hy, headSize / 2, headSize);
+            ctx.rect(hx, hy, headSize, headDrawH / 2);
             ctx.clip();
             ctx.globalAlpha = 0.25;
             if (dinoIdleImg.complete) {
                 ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                    hx, hy, headSize, headSize * 0.8);
+                    hx, hy, headSize, headDrawH);
             }
             ctx.restore();
+            // Bottom half — filled green/cyan
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(hx, hy + headDrawH / 2, headSize, headDrawH / 2);
+            ctx.clip();
+            ctx.globalAlpha = 1;
+            drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                hx, hy, headSize, headDrawH);
+            ctx.restore();
         } else {
-            // Empty head — faded gray original sprite
+            // Empty head — faded gray
             ctx.globalAlpha = 0.25;
             if (dinoIdleImg.complete) {
                 ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                    hx, hy, headSize, headSize * 0.8);
+                    hx, hy, headSize, headDrawH);
             }
         }
     }
