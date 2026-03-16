@@ -29,6 +29,8 @@ const menuControlsBtn = document.getElementById('menu-controls-btn');
 const controlsScreen = document.getElementById('controls-screen');
 const controlsBackBtn = document.getElementById('controls-back-btn');
 
+const loadingScreen = document.getElementById('loading-screen');
+
 const leaderboardScreen = document.getElementById('leaderboard-screen');
 const leaderboardTable = document.getElementById('leaderboard-table');
 const leaderboardBackBtn = document.getElementById('leaderboard-back-btn');
@@ -184,12 +186,14 @@ async function connectMetaMask() {
     }
     try {
         connectError.textContent = '';
+        showLoading();
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         if (accounts.length > 0) {
             currentWallet = accounts[0];
-            enterAfterConnect();
-        }
+            await enterAfterConnect();
+        } else { hideLoading(); }
     } catch (err) {
+        hideLoading();
         connectError.textContent = 'Connection rejected. Please try again.';
     }
 }
@@ -205,12 +209,17 @@ async function enterAfterConnect() {
     }
 }
 
+function showLoading() { loadingScreen.classList.remove('hidden'); }
+function hideLoading() { loadingScreen.classList.add('hidden'); }
+
 function showScreen(screen) {
     connectScreen.classList.add('hidden');
     usernameScreen.classList.add('hidden');
     menuScreen.classList.add('hidden');
     leaderboardScreen.classList.add('hidden');
     highscoresScreen.classList.add('hidden');
+    controlsScreen.classList.add('hidden');
+    loadingScreen.classList.add('hidden');
     if (screen) screen.classList.remove('hidden');
 }
 
@@ -233,6 +242,7 @@ function showUsernameScreen() {
 
 async function showMenu() {
     appState = 'menu';
+    showLoading();
     const player = await getPlayer(currentUsername);
     menuWelcome.textContent = 'Welcome, ' + currentUsername + '!';
     menuBest.textContent = 'Best Score: ' + (player?.bestScore || 0);
@@ -243,6 +253,7 @@ async function showMenu() {
 
 async function showLeaderboard(fromGameOver) {
     appState = fromGameOver ? 'playing' : 'leaderboard';
+    if (!fromGameOver) showLoading();
     const lb = await fetchLeaderboard();
     let html = '<div class="table-header"><span class="col-rank">RANK</span><span class="col-name">USERNAME</span><span class="col-score">SCORE</span><span class="col-marker"></span></div>';
     if (lb.length === 0) {
@@ -261,6 +272,7 @@ async function showLeaderboard(fromGameOver) {
 
 async function showHighscores() {
     appState = 'highscores';
+    showLoading();
     const player = await getPlayer(currentUsername);
     highscoresTitle.textContent = currentUsername + "'s  H I G H  S C O R E S";
     let html = '<div class="table-header"><span class="col-rank">#</span><span class="col-name">SCORE</span><span class="col-date">DATE</span></div>';
@@ -288,8 +300,10 @@ async function submitUsername() {
     }
     usernameBtn.disabled = true;
     usernameError.textContent = '';
+    showLoading();
     const taken = await isUsernameTaken(name);
     if (taken) {
+        hideLoading();
         usernameError.textContent = 'Username "' + name + '" already taken';
         usernameBtn.disabled = false;
         return;
