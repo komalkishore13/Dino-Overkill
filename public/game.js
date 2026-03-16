@@ -1077,52 +1077,79 @@ function drawHealthHUD() {
     const headSize = 22;
     const headDrawH = Math.round(headSize * 0.8);
     const gap = 6;
-    const startX = 15;
-    const startY = HUD_Y + 16;
+    const pad = 8;
+    const headsW = 5 * headSize + 4 * gap;
+    const boxX = 6;
+    const boxY = HUD_Y - 16;
+    const boxW = Math.max(headsW, 80) + pad * 2 + 6;
+    const boxH = headDrawH + 24 + pad * 2;
+    const headStartX = boxX + pad + 3;
+    const headStartY = boxY + pad + 20;
     const fullHeads = Math.floor(dinoHeadPickups / 2);
     const hasHalf = dinoHeadPickups % 2 === 1;
 
-    // Blink HUD heads during health hit immunity (matches dino blink)
-    if (healthHitImmune && Math.floor(Date.now() / 100) % 2 === 0) return;
-
     ctx.save();
-    for (let i = 0; i < 5; i++) {
-        const hx = startX + i * (headSize + gap);
-        const hy = startY;
 
-        if (i < fullHeads) {
-            // Full head — green/cyan tinted
-            ctx.globalAlpha = 1;
-            drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                hx, hy, headSize, headDrawH);
-        } else if (i === fullHeads && hasHalf) {
-            // Half head — bottom half filled (green/cyan), top half faded gray
-            // Top half — faded gray
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(hx, hy, headSize, headDrawH / 2);
-            ctx.clip();
-            ctx.globalAlpha = 0.25;
-            if (dinoIdleImg.complete) {
-                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+    // Retro black box background
+    const bgV = lerpV(0, 30);
+    ctx.fillStyle = `rgb(${bgV},${bgV},${bgV})`;
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+
+    // Border (double-line retro style)
+    const borderV = lerpV(83, 200);
+    ctx.strokeStyle = `rgb(${borderV},${borderV},${borderV})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(boxX + 3, boxY + 3, boxW - 6, boxH - 6);
+
+    // Player name inside the box
+    if (currentUsername) {
+        ctx.fillStyle = `rgb(${borderV},${borderV},${borderV})`;
+        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(currentUsername.toUpperCase(), headStartX, boxY + pad + 12);
+    }
+
+    // Blink HUD heads during health hit immunity (matches dino blink)
+    const blinkHide = healthHitImmune && Math.floor(Date.now() / 100) % 2 === 0;
+
+    if (!blinkHide) {
+        for (let i = 0; i < 5; i++) {
+            const hx = headStartX + i * (headSize + gap);
+            const hy = headStartY;
+
+            if (i < fullHeads) {
+                ctx.globalAlpha = 1;
+                drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
                     hx, hy, headSize, headDrawH);
-            }
-            ctx.restore();
-            // Bottom half — filled green/cyan
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(hx, hy + headDrawH / 2, headSize, headDrawH / 2);
-            ctx.clip();
-            ctx.globalAlpha = 1;
-            drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                hx, hy, headSize, headDrawH);
-            ctx.restore();
-        } else {
-            // Empty head — faded gray
-            ctx.globalAlpha = 0.25;
-            if (dinoIdleImg.complete) {
-                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+            } else if (i === fullHeads && hasHalf) {
+                // Top half — faded gray
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(hx, hy, headSize, headDrawH / 2);
+                ctx.clip();
+                ctx.globalAlpha = 0.25;
+                if (dinoIdleImg.complete) {
+                    ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                        hx, hy, headSize, headDrawH);
+                }
+                ctx.restore();
+                // Bottom half — filled
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(hx, hy + headDrawH / 2, headSize, headDrawH / 2);
+                ctx.clip();
+                ctx.globalAlpha = 1;
+                drawTintedDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
                     hx, hy, headSize, headDrawH);
+                ctx.restore();
+            } else {
+                ctx.globalAlpha = 0.25;
+                if (dinoIdleImg.complete) {
+                    ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                        hx, hy, headSize, headDrawH);
+                }
             }
         }
     }
@@ -2681,16 +2708,8 @@ function renderGame() {
         }
     }
 
-    // Score (top right) + username (top left) during gameplay
+    // Score (top right) during gameplay
     if (appState === 'playing') {
-        // Username top left
-        if (currentUsername) {
-            ctx.fillStyle = getHudColor();
-            ctx.font = 'bold 14px "Courier New", monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText(currentUsername, 15, HUD_Y);
-        }
-
         // Score top right
         ctx.fillStyle = getHudColor();
         ctx.font = 'bold 16px "Courier New", monospace';
