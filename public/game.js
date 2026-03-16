@@ -464,6 +464,17 @@ const MULTIPLIER_DURATION_MS = 7000; // 7 seconds real time
 const MULTIPLIER_COOLDOWN_MS = 10000; // 10 seconds after collection
 const MULTIPLIER_TESTING = false;
 
+// ======== DINO HEALTH SYSTEM ========
+const HEALTH_TESTING = true; // Testing mode: spawn head within 2s, no power-ups
+let dinoHeadPickups = 0; // 0-10, each pickup = half a HUD head
+const MAX_DINO_PICKUPS = 10; // 10 pickups = 5 full heads
+let healthHeads = []; // active head collectibles on screen
+let healthNextSpawnScore = 100; // next score threshold to spawn
+let healthHitImmune = false; // 2s immunity after taking a hit
+let healthHitImmuneEnd = 0;
+const HEALTH_HIT_IMMUNITY_MS = 2000;
+const DINO_HEAD_SIZE = 32; // collectible size in-game
+
 // Intro animation state
 let introPhase = 0; // 0=clouds, 1=ground, 2=dino falling, 3=dino running, 4=done
 let introTimer = 0;
@@ -680,6 +691,31 @@ function spawnCollectible() {
     });
 }
 
+function spawnHealthHead() {
+    if (healthHeads.length > 0) return;
+    if (dinoHeadPickups >= MAX_DINO_PICKUPS) return;
+
+    // Don't spawn if obstacle near right edge
+    const safeZone = CANVAS_WIDTH - 150;
+    for (let i = 0; i < obstacles.length; i++) {
+        if (obstacles[i].x > safeZone) return;
+    }
+
+    // Random: ground or sky
+    const inSky = Math.random() < 0.5;
+    const y = inSky
+        ? GROUND_LINE - DINO_DRAW_H - 40 - Math.random() * 80 // sky (reachable by jump)
+        : GROUND_LINE - DINO_HEAD_SIZE; // ground level
+
+    healthHeads.push({
+        x: CANVAS_WIDTH + DINO_HEAD_SIZE,
+        y: y,
+        width: DINO_HEAD_SIZE,
+        height: DINO_HEAD_SIZE,
+        bobPhase: Math.random() * Math.PI * 2
+    });
+}
+
 function activateDash() {
     dashActive = true;
     dashEndTime = Date.now() + DASH_DURATION_MS;
@@ -821,7 +857,7 @@ function updateCollectibles() {
 
     // Spawn logic — don't spawn during any active power-up
     const anyPowerActive = immunityActive || dashActive || multiplierActive;
-    if (collectibles.length === 0 && !anyPowerActive && score > 30) {
+    if (!HEALTH_TESTING && collectibles.length === 0 && !anyPowerActive && score > 30) {
         spawnCollectible();
     }
 
@@ -880,6 +916,53 @@ function updateCollectibles() {
 
     // Update dash
     updateDash();
+
+    // ======== HEALTH HEADS ========
+    // Spawn logic
+    if (HEALTH_TESTING) {
+        // Testing: spawn within first 2 seconds
+        if (healthHeads.length === 0 && frameCount > 60 && frameCount < 180) {
+            spawnHealthHead();
+        }
+    } else {
+        // Normal: spawn every 100 score
+        if (healthHeads.length === 0 && score >= healthNextSpawnScore) {
+            spawnHealthHead();
+        }
+    }
+
+    // Move health heads left
+    for (let i = healthHeads.length - 1; i >= 0; i--) {
+        const h = healthHeads[i];
+        h.x -= gameSpeed;
+        h.bobPhase += 0.05;
+
+        // Off-screen removal
+        if (h.x + h.width < 0) {
+            healthHeads.splice(i, 1);
+            continue;
+        }
+
+        // Collision with dino
+        const pad = 4;
+        if (
+            dino.x + pad < h.x + h.width - pad &&
+            dino.x + dino.width - pad > h.x + pad &&
+            dino.y + pad < h.y + h.height - pad &&
+            dino.y + dino.height - pad > h.y + pad
+        ) {
+            healthHeads.splice(i, 1);
+            if (dinoHeadPickups < MAX_DINO_PICKUPS) {
+                dinoHeadPickups++;
+            }
+            healthNextSpawnScore = score + 100;
+        }
+    }
+
+    // Update health hit immunity
+    if (healthHitImmune && Date.now() >= healthHitImmuneEnd) {
+        healthHitImmune = false;
+    }
 }
 
 function drawCollectible(c) {
@@ -943,6 +1026,85 @@ function drawCollectible(c) {
     ctx.arc(cx, cy, r * 1.3, 0, Math.PI * 2);
     ctx.stroke();
 
+    ctx.restore();
+}
+
+function drawHealthHead(h) {
+    const bob = Math.sin(h.bobPhase) * 4;
+    const cx = h.x + h.width / 2;
+    const cy = h.y + h.height / 2 + bob;
+
+    ctx.save();
+    // Glow
+    const glowV = lerpV(120, 200);
+    const glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, h.width);
+    glow.addColorStop(0, `rgba(${glowV}, ${glowV}, ${glowV}, 0.25)`);
+    glow.addColorStop(1, `rgba(${glowV}, ${glowV}, ${glowV}, 0)`);
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, h.width, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Draw dino head using the idle sprite (just the head portion)
+    if (dinoIdleImg.complete) {
+        ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+            cx - h.width / 2, cy - h.height / 2, h.width, h.height * 0.8);
+    }
+    ctx.restore();
+}
+
+function drawHealthHUD() {
+    const headSize = 22;
+    const gap = 6;
+    const startX = 15;
+    const startY = HUD_Y + 16;
+    const fullHeads = Math.floor(dinoHeadPickups / 2);
+    const hasHalf = dinoHeadPickups % 2 === 1;
+
+    ctx.save();
+    for (let i = 0; i < 5; i++) {
+        const hx = startX + i * (headSize + gap);
+        const hy = startY;
+
+        if (i < fullHeads) {
+            // Full head — draw dino head sprite
+            ctx.globalAlpha = 1;
+            if (dinoIdleImg.complete) {
+                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                    hx, hy, headSize, headSize * 0.8);
+            }
+        } else if (i === fullHeads && hasHalf) {
+            // Half head — clip left half filled, right half empty
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(hx, hy, headSize / 2, headSize);
+            ctx.clip();
+            ctx.globalAlpha = 1;
+            if (dinoIdleImg.complete) {
+                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                    hx, hy, headSize, headSize * 0.8);
+            }
+            ctx.restore();
+            // Right half outline
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(hx + headSize / 2, hy, headSize / 2, headSize);
+            ctx.clip();
+            ctx.globalAlpha = 0.25;
+            if (dinoIdleImg.complete) {
+                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                    hx, hy, headSize, headSize * 0.8);
+            }
+            ctx.restore();
+        } else {
+            // Empty head — faded outline
+            ctx.globalAlpha = 0.25;
+            if (dinoIdleImg.complete) {
+                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                    hx, hy, headSize, headSize * 0.8);
+            }
+        }
+    }
     ctx.restore();
 }
 
@@ -1720,6 +1882,12 @@ function startIntro() {
     highScoreBeaten = false;
     newHighScoreTime = 0;
     nextSpawnAt = 60 + Math.random() * 80;
+    // Reset health system
+    dinoHeadPickups = 0;
+    healthHeads = [];
+    healthNextSpawnScore = HEALTH_TESTING ? 0 : 100;
+    healthHitImmune = false;
+    healthHitImmuneEnd = 0;
     gameOverDisplay.classList.add('hidden');
     initGround();
     // Reset to day theme
@@ -2121,7 +2289,17 @@ function updateGame() {
         }
 
         if (obs.x + obs.width < 0) { obstacles.splice(i, 1); continue; }
-        if (!immunityActive && !dashActive && checkCollision(dino, obs)) {
+        if (!immunityActive && !dashActive && !healthHitImmune && checkCollision(dino, obs)) {
+            // Check if player has full health heads to absorb hit
+            const fullHeads = Math.floor(dinoHeadPickups / 2);
+            if (fullHeads > 0) {
+                // Consume 1 full head (2 pickups) and grant 2s immunity
+                dinoHeadPickups -= 2;
+                healthHitImmune = true;
+                healthHitImmuneEnd = Date.now() + HEALTH_HIT_IMMUNITY_MS;
+                obstacles.splice(i, 1);
+                continue;
+            }
             onGameOver();
             return;
         }
@@ -2183,6 +2361,10 @@ function updateGame() {
 // ======== DRAWING FUNCTIONS ========
 
 function drawDino() {
+    // Blink dino when health hit immunity is active
+    if (healthHitImmune && Math.floor(Date.now() / 100) % 2 === 0) {
+        return; // skip drawing every other frame for blink effect
+    }
     if (gameState === 'dying') {
         // Death animation: dino tumbles and falls
         if (!dinoIdleImg.complete) return;
@@ -2441,6 +2623,7 @@ function renderGame() {
 
     // Draw collectibles (above obstacles, below dino)
     collectibles.forEach(c => drawCollectible(c));
+    healthHeads.forEach(h => drawHealthHead(h));
 
     drawDino();
 
@@ -2448,6 +2631,11 @@ function renderGame() {
     drawImmunityEffect();
     drawDashEffect();
     drawMultiplierEffect();
+
+    // Health HUD
+    if (gameState === 'running' || gameState === 'over') {
+        drawHealthHUD();
+    }
 
     // Reset filter after sprites
     if (themeT > 0.01) ctx.filter = 'none';
