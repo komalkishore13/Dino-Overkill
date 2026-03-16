@@ -989,19 +989,17 @@ function drawImmunityEffect() {
         ctx.drawImage(shieldImg, dcx - iconSize / 2, iconY - iconSize / 2, iconSize, iconSize);
     }
 
-    // Timer bar beneath the shield icon (grayscale)
-    const barW = 30;
-    const barH = 3;
-    const barX = dcx - barW / 2;
-    const barY = dino.y - 6;
+    // Full-width timer bar below ground line
+    const barH = 6;
+    const barY = GROUND_LINE + 8;
     const frac = remainMs / IMMUNITY_DURATION_MS;
-    ctx.globalAlpha = 0.6 * blink;
+    ctx.globalAlpha = 0.5 * blink;
     const bgBarV = lerpV(50, 100);
     ctx.fillStyle = `rgba(${bgBarV}, ${bgBarV}, ${bgBarV}, 0.4)`;
-    ctx.fillRect(barX, barY, barW, barH);
+    ctx.fillRect(0, barY, CANVAS_WIDTH, barH);
     const barV = frac > 0.3 ? lerpV(90, 210) : lerpV(60, 160);
     ctx.fillStyle = `rgba(${barV}, ${barV}, ${barV}, 0.9)`;
-    ctx.fillRect(barX, barY, barW * frac, barH);
+    ctx.fillRect(0, barY, CANVAS_WIDTH * frac, barH);
 
     ctx.restore();
 }
@@ -1057,22 +1055,20 @@ function drawDashEffect() {
         ctx.restore();
     });
 
-    // Timer bar above dino
-    const dcx = dino.x + dino.width / 2;
-    const barW = 30;
-    const barH = 3;
-    const barX = dcx - barW / 2;
-    const barY = dino.y - 6;
+    // Full-width timer bar below ground line
     const frac = remaining / DASH_DURATION_MS;
-    ctx.globalAlpha = 0.6 * blink;
+    const barH = 6;
+    const barY = GROUND_LINE + 8;
+    ctx.globalAlpha = 0.5 * blink;
     const bgBarV = lerpV(50, 100);
     ctx.fillStyle = `rgba(${bgBarV}, ${bgBarV}, ${bgBarV}, 0.4)`;
-    ctx.fillRect(barX, barY, barW, barH);
+    ctx.fillRect(0, barY, CANVAS_WIDTH, barH);
     const barV = frac > 0.3 ? lerpV(90, 210) : lerpV(60, 160);
     ctx.fillStyle = `rgba(${barV}, ${barV}, ${barV}, 0.9)`;
-    ctx.fillRect(barX, barY, barW * frac, barH);
+    ctx.fillRect(0, barY, CANVAS_WIDTH * frac, barH);
 
     // Small dash icon above dino
+    const dcx = dino.x + dino.width / 2;
     if (dashImg.complete) {
         const iconSize = 18;
         const iconY = dino.y - 20;
@@ -1099,19 +1095,17 @@ function drawMultiplierEffect() {
         ctx.drawImage(multiplierImg, dcx - iconSize / 2, iconY - iconSize / 2, iconSize, iconSize);
     }
 
-    // Timer bar
-    const barW = 30;
-    const barH = 3;
-    const barX = dcx - barW / 2;
-    const barY = dino.y - 6;
+    // Full-width timer bar below ground line
+    const barH = 6;
+    const barY = GROUND_LINE + 8;
     const frac = remainMs / MULTIPLIER_DURATION_MS;
-    ctx.globalAlpha = 0.6 * blink;
+    ctx.globalAlpha = 0.5 * blink;
     const bgBarV = lerpV(50, 100);
     ctx.fillStyle = `rgba(${bgBarV}, ${bgBarV}, ${bgBarV}, 0.4)`;
-    ctx.fillRect(barX, barY, barW, barH);
+    ctx.fillRect(0, barY, CANVAS_WIDTH, barH);
     const barV = frac > 0.3 ? lerpV(90, 210) : lerpV(60, 160);
     ctx.fillStyle = `rgba(${barV}, ${barV}, ${barV}, 0.9)`;
-    ctx.fillRect(barX, barY, barW * frac, barH);
+    ctx.fillRect(0, barY, CANVAS_WIDTH * frac, barH);
 
     // "2X" text on HUD (top right area, below score)
     ctx.globalAlpha = 0.8 * blink;
