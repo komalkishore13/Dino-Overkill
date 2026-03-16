@@ -610,7 +610,7 @@ let skyBirds = [];
 
 function initSkyBirds() {
     skyBirds = [];
-    const count = 8 + Math.floor(Math.random() * 5); // 8-12 birds
+    const count = 18 + Math.floor(Math.random() * 5); // 18-22 birds
     for (let i = 0; i < count; i++) {
         skyBirds.push({
             x: Math.random() * CANVAS_WIDTH,
@@ -1079,8 +1079,8 @@ function drawHealthHUD() {
     const gap = 6;
     const pad = 8;
     const headsW = 5 * headSize + 4 * gap;
-    const boxX = 6;
-    const boxY = 6;
+    const boxX = 246;
+    const boxY = 246;
     const boxW = Math.max(headsW, 80) + pad * 2 + 6;
     const boxH = headDrawH + 30 + pad * 2;
     const headStartX = boxX + pad + 3;
