@@ -1031,9 +1031,9 @@ const _tintCtx = _tintCanvas.getContext('2d');
 
 function getHealthColor() {
     // Green in day, cyan in night, interpolated
-    const r = Math.round(0 + (0 - 0) * themeT);
-    const g = Math.round(180 + (220 - 180) * themeT);
-    const b = Math.round(0 + (220 - 0) * themeT);
+    const r = Math.round(0 + (204 - 0) * themeT);
+    const g = Math.round(180 + (0 - 180) * themeT);
+    const b = Math.round(0 + (0 - 0) * themeT);
     return { r, g, b, hex: `rgb(${r},${g},${b})` };
 }
 
