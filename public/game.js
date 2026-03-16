@@ -1025,27 +1025,41 @@ function drawCollectible(c) {
     ctx.restore();
 }
 
+// Offscreen canvas for brown-tinting dino heads
+const _tintCanvas = document.createElement('canvas');
+const _tintCtx = _tintCanvas.getContext('2d');
+
+function drawBrownDinoHead(destCtx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+    if (!img.complete) return;
+    _tintCanvas.width = dw;
+    _tintCanvas.height = dh;
+    _tintCtx.clearRect(0, 0, dw, dh);
+    _tintCtx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
+    _tintCtx.globalCompositeOperation = 'source-atop';
+    _tintCtx.fillStyle = '#CC0000';
+    _tintCtx.fillRect(0, 0, dw, dh);
+    _tintCtx.globalCompositeOperation = 'source-over';
+    destCtx.drawImage(_tintCanvas, dx, dy);
+}
+
 function drawHealthHead(h) {
     const bob = Math.sin(h.bobPhase) * 4;
     const cx = h.x + h.width / 2;
     const cy = h.y + h.height / 2 + bob;
 
     ctx.save();
-    // Glow
-    const glowV = lerpV(120, 200);
+    // Glow (brown-tinted)
     const glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, h.width);
-    glow.addColorStop(0, `rgba(${glowV}, ${glowV}, ${glowV}, 0.25)`);
-    glow.addColorStop(1, `rgba(${glowV}, ${glowV}, ${glowV}, 0)`);
+    glow.addColorStop(0, 'rgba(204, 0, 0, 0.3)');
+    glow.addColorStop(1, 'rgba(204, 0, 0, 0)');
     ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(cx, cy, h.width, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw dino head using the idle sprite (just the head portion)
-    if (dinoIdleImg.complete) {
-        ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-            cx - h.width / 2, cy - h.height / 2, h.width, h.height * 0.8);
-    }
+    // Draw brown dino head
+    drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+        cx - h.width / 2, cy - h.height / 2, h.width, h.height * 0.8);
     ctx.restore();
 }
 
@@ -1063,12 +1077,10 @@ function drawHealthHUD() {
         const hy = startY;
 
         if (i < fullHeads) {
-            // Full head — draw dino head sprite
+            // Full head — brown dino head
             ctx.globalAlpha = 1;
-            if (dinoIdleImg.complete) {
-                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                    hx, hy, headSize, headSize * 0.8);
-            }
+            drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                hx, hy, headSize, headSize * 0.8);
         } else if (i === fullHeads && hasHalf) {
             // Half head — clip left half filled, right half empty
             ctx.save();
@@ -1076,10 +1088,8 @@ function drawHealthHUD() {
             ctx.rect(hx, hy, headSize / 2, headSize);
             ctx.clip();
             ctx.globalAlpha = 1;
-            if (dinoIdleImg.complete) {
-                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                    hx, hy, headSize, headSize * 0.8);
-            }
+            drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                hx, hy, headSize, headSize * 0.8);
             ctx.restore();
             // Right half outline
             ctx.save();
@@ -1087,18 +1097,14 @@ function drawHealthHUD() {
             ctx.rect(hx + headSize / 2, hy, headSize / 2, headSize);
             ctx.clip();
             ctx.globalAlpha = 0.25;
-            if (dinoIdleImg.complete) {
-                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                    hx, hy, headSize, headSize * 0.8);
-            }
+            drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                hx, hy, headSize, headSize * 0.8);
             ctx.restore();
         } else {
-            // Empty head — faded outline
+            // Empty head — faded brown outline
             ctx.globalAlpha = 0.25;
-            if (dinoIdleImg.complete) {
-                ctx.drawImage(dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
-                    hx, hy, headSize, headSize * 0.8);
-            }
+            drawBrownDinoHead(ctx, dinoIdleImg, 0, 0, dinoIdleImg.width, dinoIdleImg.width * 0.5,
+                hx, hy, headSize, headSize * 0.8);
         }
     }
     ctx.restore();
