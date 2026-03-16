@@ -948,7 +948,7 @@ function drawCollectible(c) {
 
 function drawPowerTimerBar(frac, blink) {
     const barH = 8;
-    const barY = GROUND_LINE + 16;
+    const barY = GROUND_LINE + 20;
     const fillW = CANVAS_WIDTH * frac;
     ctx.save();
     ctx.globalAlpha = 0.7 * blink;
