@@ -946,6 +946,51 @@ function drawCollectible(c) {
     ctx.restore();
 }
 
+function drawPowerTimerBar(frac, blink) {
+    const barH = 8;
+    const barY = GROUND_LINE + 16;
+    const fillW = CANVAS_WIDTH * frac;
+    ctx.save();
+    ctx.globalAlpha = 0.7 * blink;
+
+    // Border
+    const borderV = lerpV(40, 80);
+    ctx.strokeStyle = `rgb(${borderV}, ${borderV}, ${borderV})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, barY, CANVAS_WIDTH, barH);
+
+    // Background
+    const bgV = lerpV(50, 100);
+    ctx.fillStyle = `rgba(${bgV}, ${bgV}, ${bgV}, 0.3)`;
+    ctx.fillRect(0, barY, CANVAS_WIDTH, barH);
+
+    // Diagonal stripes fill
+    if (fillW > 0) {
+        ctx.beginPath();
+        ctx.rect(0, barY, fillW, barH);
+        ctx.clip();
+
+        const stripeW = 6;
+        const stripeV = frac > 0.3 ? lerpV(60, 180) : lerpV(40, 130);
+        ctx.fillStyle = `rgb(${stripeV}, ${stripeV}, ${stripeV})`;
+        ctx.fillRect(0, barY, fillW, barH);
+
+        const lightV = frac > 0.3 ? lerpV(90, 230) : lerpV(70, 170);
+        ctx.fillStyle = `rgb(${lightV}, ${lightV}, ${lightV})`;
+        for (let x = -barH; x < fillW + barH; x += stripeW * 2) {
+            ctx.beginPath();
+            ctx.moveTo(x, barY + barH);
+            ctx.lineTo(x + barH, barY);
+            ctx.lineTo(x + barH + stripeW, barY);
+            ctx.lineTo(x + stripeW, barY + barH);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
+    ctx.restore();
+}
+
 function drawImmunityEffect() {
     if (!immunityActive) return;
 
@@ -990,16 +1035,7 @@ function drawImmunityEffect() {
     }
 
     // Full-width timer bar below ground line
-    const barH = 6;
-    const barY = GROUND_LINE + 8;
-    const frac = remainMs / IMMUNITY_DURATION_MS;
-    ctx.globalAlpha = 0.5 * blink;
-    const bgBarV = lerpV(50, 100);
-    ctx.fillStyle = `rgba(${bgBarV}, ${bgBarV}, ${bgBarV}, 0.4)`;
-    ctx.fillRect(0, barY, CANVAS_WIDTH, barH);
-    const barV = frac > 0.3 ? lerpV(90, 210) : lerpV(60, 160);
-    ctx.fillStyle = `rgba(${barV}, ${barV}, ${barV}, 0.9)`;
-    ctx.fillRect(0, barY, CANVAS_WIDTH * frac, barH);
+    drawPowerTimerBar(remainMs / IMMUNITY_DURATION_MS, blink);
 
     ctx.restore();
 }
@@ -1056,16 +1092,7 @@ function drawDashEffect() {
     });
 
     // Full-width timer bar below ground line
-    const frac = remaining / DASH_DURATION_MS;
-    const barH = 6;
-    const barY = GROUND_LINE + 8;
-    ctx.globalAlpha = 0.5 * blink;
-    const bgBarV = lerpV(50, 100);
-    ctx.fillStyle = `rgba(${bgBarV}, ${bgBarV}, ${bgBarV}, 0.4)`;
-    ctx.fillRect(0, barY, CANVAS_WIDTH, barH);
-    const barV = frac > 0.3 ? lerpV(90, 210) : lerpV(60, 160);
-    ctx.fillStyle = `rgba(${barV}, ${barV}, ${barV}, 0.9)`;
-    ctx.fillRect(0, barY, CANVAS_WIDTH * frac, barH);
+    drawPowerTimerBar(remaining / DASH_DURATION_MS, blink);
 
     // Small dash icon above dino
     const dcx = dino.x + dino.width / 2;
@@ -1096,16 +1123,7 @@ function drawMultiplierEffect() {
     }
 
     // Full-width timer bar below ground line
-    const barH = 6;
-    const barY = GROUND_LINE + 8;
-    const frac = remainMs / MULTIPLIER_DURATION_MS;
-    ctx.globalAlpha = 0.5 * blink;
-    const bgBarV = lerpV(50, 100);
-    ctx.fillStyle = `rgba(${bgBarV}, ${bgBarV}, ${bgBarV}, 0.4)`;
-    ctx.fillRect(0, barY, CANVAS_WIDTH, barH);
-    const barV = frac > 0.3 ? lerpV(90, 210) : lerpV(60, 160);
-    ctx.fillStyle = `rgba(${barV}, ${barV}, ${barV}, 0.9)`;
-    ctx.fillRect(0, barY, CANVAS_WIDTH * frac, barH);
+    drawPowerTimerBar(remainMs / MULTIPLIER_DURATION_MS, blink);
 
     // "2X" text on HUD (top right area, below score)
     ctx.globalAlpha = 0.8 * blink;
