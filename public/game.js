@@ -1153,6 +1153,44 @@ function drawHealthHUD() {
     ctx.restore();
 }
 
+function drawScoreHUD(scoreStr, hi) {
+    const pad = 8;
+    const boxW = 150;
+    const boxH = hi > 0 ? 52 : 32;
+    const boxX = CANVAS_WIDTH - 96 - boxW;
+    const boxY = 96;
+
+    ctx.save();
+
+    // Retro black box
+    const bgV = lerpV(0, 30);
+    ctx.fillStyle = `rgb(${bgV},${bgV},${bgV})`;
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+
+    // Double border
+    const borderV = lerpV(83, 200);
+    ctx.strokeStyle = `rgb(${borderV},${borderV},${borderV})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(boxX, boxY, boxW, boxH);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(boxX + 3, boxY + 3, boxW - 6, boxH - 6);
+
+    // Player score on top
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 16px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(scoreStr, boxX + boxW / 2, boxY + pad + 12);
+
+    // High score below
+    if (hi > 0) {
+        ctx.fillStyle = `rgb(${borderV},${borderV},${borderV})`;
+        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.fillText('HI ' + String(hi).padStart(5, '0'), boxX + boxW / 2, boxY + pad + 30);
+    }
+
+    ctx.restore();
+}
+
 function drawPowerTimerBar(frac, blink, message, seconds) {
     const barH = 8;
     const barY = GROUND_LINE + 20;
@@ -2272,15 +2310,7 @@ function renderIntro() {
         ctx.textAlign = 'left';
         ctx.fillText(currentUsername, 15, HUD_Y);
     }
-    ctx.fillStyle = getHudColor();
-    ctx.font = 'bold 16px "Courier New", monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText('00000', CANVAS_WIDTH - 15, HUD_Y);
-    if (highScore > 0) {
-        ctx.fillStyle = getHudSecondaryColor();
-        ctx.fillText('HI ' + String(highScore).padStart(5, '0'), CANVAS_WIDTH - 95, HUD_Y);
-    }
-    ctx.textAlign = 'left';
+    drawScoreHUD('00000', highScore);
 }
 
 function updateDying() {
@@ -2705,18 +2735,9 @@ function renderGame() {
         }
     }
 
-    // Score (top right) during gameplay
+    // Score box (top right) during gameplay
     if (appState === 'playing') {
-        // Score top right
-        ctx.fillStyle = getHudColor();
-        ctx.font = 'bold 16px "Courier New", monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(String(score).padStart(5, '0'), CANVAS_WIDTH - 15, HUD_Y);
-        if (highScore > 0) {
-            ctx.fillStyle = getHudSecondaryColor();
-            ctx.fillText('HI ' + String(highScore).padStart(5, '0'), CANVAS_WIDTH - 95, HUD_Y);
-        }
-        ctx.textAlign = 'left';
+        drawScoreHUD(String(score).padStart(5, '0'), highScore);
     }
 }
 
