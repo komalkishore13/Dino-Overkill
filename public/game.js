@@ -993,8 +993,7 @@ function drawPowerTimerBar(frac, blink, message, seconds) {
     // Message below the bar
     ctx.save();
     ctx.globalAlpha = 0.8 * blink;
-    const textV = lerpV(50, 200);
-    ctx.fillStyle = `rgb(${textV}, ${textV}, ${textV})`;
+    ctx.fillStyle = getHudColor();
     ctx.font = 'bold 20px "Courier New", monospace';
     ctx.textAlign = 'center';
     ctx.fillText(message + ' ' + seconds + 's', CANVAS_WIDTH / 2, barY + barH + 22);
