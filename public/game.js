@@ -13,6 +13,10 @@ sfxMenu.loop = true;
 function playMenuMusic() { sfxMenu.currentTime = 0; sfxMenu.play().catch(() => {}); }
 function stopMenuMusic() { sfxMenu.pause(); sfxMenu.currentTime = 0; }
 
+const sfxHit = new Audio('hit.mp3');
+sfxHit.volume = 0.6;
+function playHit() { sfxHit.currentTime = 0; sfxHit.play().catch(() => {}); }
+
 // Prevent iOS bounce/scroll/zoom globally
 document.addEventListener('touchmove', (e) => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
 const scoreDisplay = document.getElementById('score-display');
@@ -2033,6 +2037,7 @@ function startGame() {
 }
 
 function onGameOver() {
+    playHit();
     gameState = 'dying';
     deathTimer = 0;
     deathDinoVelY = -6; // pop up first
