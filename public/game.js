@@ -2960,32 +2960,16 @@ function renderGame() {
 }
 
 // Game loop
-let _lastFrameTime = 0;
-let _accumTime = 0;
-const TARGET_FRAME_MS = 1000 / 60; // 16.67ms per tick at 60fps
-
-function gameLoop(timestamp) {
-    if (!_lastFrameTime) _lastFrameTime = timestamp;
-    const delta = Math.min(timestamp - _lastFrameTime, 100); // cap at 100ms to avoid spiral
-    _lastFrameTime = timestamp;
-
+function gameLoop() {
     if (appState === 'playing') {
-        _accumTime += delta;
-        // Run fixed-step updates to match 60fps regardless of actual frame rate
-        while (_accumTime >= TARGET_FRAME_MS) {
-            _accumTime -= TARGET_FRAME_MS;
-            if (gameState === 'intro') {
-                updateIntro();
-            } else if (gameState === 'dying') {
-                updateDying();
-            } else {
-                updateGame();
-            }
-        }
-        // Render once per frame
         if (gameState === 'intro') {
+            updateIntro();
             renderIntro();
+        } else if (gameState === 'dying') {
+            updateDying();
+            renderGame();
         } else {
+            updateGame();
             renderGame();
         }
     }
