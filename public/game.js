@@ -1,6 +1,9 @@
 // Dino Game - Chrome Dino Clone with MetaMask Auth
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
+
+// Prevent iOS bounce/scroll/zoom globally
+document.addEventListener('touchmove', (e) => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
 const scoreDisplay = document.getElementById('score-display');
 const highScoreDisplay = document.getElementById('high-score-display');
 const gameOverDisplay = document.getElementById('game-over');
@@ -2058,6 +2061,83 @@ document.addEventListener('keyup', (e) => {
         }
     }
 });
+
+// ── Mobile Touch / Swipe Controls ──
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+let isTouchDucking = false;
+
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    touchStartTime = Date.now();
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (!touchStartTime) return;
+    const t = e.touches[0];
+    const dy = t.clientY - touchStartY;
+    const elapsed = Date.now() - touchStartTime;
+
+    // Swipe up — jump (threshold 30px)
+    if (dy < -30 && elapsed < 400) {
+        if (appState === 'playing' && gameState === 'running' && !dino.isJumping) {
+            dino.velocityY = JUMP_FORCE;
+            dino.isJumping = true;
+        }
+        touchStartTime = 0; // consume swipe
+    }
+
+    // Swipe down — duck (threshold 30px)
+    if (dy > 30 && elapsed < 400) {
+        if (appState === 'playing' && gameState === 'running' && !isTouchDucking) {
+            isTouchDucking = true;
+            dino.isDucking = true;
+            dino.width = dino.duckWidth;
+            dino.height = dino.duckHeight;
+            dino.y = GROUND_Y + (dino.standHeight - dino.duckHeight);
+        }
+        touchStartTime = 0; // consume swipe
+    }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    const elapsed = Date.now() - touchStartTime;
+
+    // Tap (no significant swipe) — used for start/restart
+    if (touchStartTime && elapsed < 300) {
+        if (appState === 'menu') {
+            startIntro();
+        } else if (appState === 'playing' && gameState === 'over') {
+            startIntro();
+        } else if (appState === 'playing' && gameState === 'running' && !dino.isJumping) {
+            // Quick tap also jumps during gameplay
+            dino.velocityY = JUMP_FORCE;
+            dino.isJumping = true;
+        }
+    }
+
+    // Release duck on touch end
+    if (isTouchDucking) {
+        isTouchDucking = false;
+        dino.isDucking = false;
+        dino.width = dino.standWidth;
+        dino.height = dino.standHeight;
+        if (!dino.isJumping) {
+            dino.y = GROUND_Y;
+        }
+    }
+
+    touchStartTime = 0;
+}, { passive: false });
+
+// Prevent context menu on long press
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // Spawn obstacles
 let nextSpawnAt = 60 + Math.random() * 80;
