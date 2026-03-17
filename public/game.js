@@ -2959,17 +2959,33 @@ function renderGame() {
     }
 }
 
-// Game loop
-function gameLoop() {
+// Game loop — adaptive multi-update for slow mobile browsers
+let _lastFrameTime = 0;
+
+function gameLoop(timestamp) {
+    if (!_lastFrameTime) _lastFrameTime = timestamp;
+    const delta = Math.min(timestamp - _lastFrameTime, 100);
+    _lastFrameTime = timestamp;
+
+    // At 144fps: delta=7ms → 1 update (preserves fast desktop feel)
+    // At 60fps:  delta=17ms → 1 update (normal)
+    // At 30fps:  delta=33ms → 2 updates (compensates for slow mobile)
+    const updates = Math.max(1, Math.round(delta / 16.67));
+
     if (appState === 'playing') {
+        for (let i = 0; i < updates; i++) {
+            if (gameState === 'intro') {
+                updateIntro();
+            } else if (gameState === 'dying') {
+                updateDying();
+            } else {
+                updateGame();
+            }
+        }
+        // Render once per frame
         if (gameState === 'intro') {
-            updateIntro();
             renderIntro();
-        } else if (gameState === 'dying') {
-            updateDying();
-            renderGame();
         } else {
-            updateGame();
             renderGame();
         }
     }
