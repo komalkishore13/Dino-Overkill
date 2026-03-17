@@ -1155,8 +1155,8 @@ function drawScoreHUD(scoreStr, hi) {
     const pad = 8;
     const boxW = 150;
     const boxH = hi > 0 ? 52 : 32;
-    const boxX = CANVAS_WIDTH - 96 - boxW;
-    const boxY = 96;
+    const boxX = CANVAS_WIDTH - 102 - boxW;
+    const boxY = 102;
 
     ctx.save();
 
@@ -2737,8 +2737,8 @@ function renderGame() {
         }
     }
 
-    // Score box (top right) during gameplay
-    if (appState === 'playing') {
+    // Score box (top right) during gameplay (hide during game over to avoid overlap)
+    if (appState === 'playing' && gameState !== 'over') {
         drawScoreHUD(String(score).padStart(5, '0'), highScore);
     }
 }
