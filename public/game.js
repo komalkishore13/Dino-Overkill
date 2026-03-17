@@ -359,10 +359,10 @@ function resizeCanvas() {
     // HUD sits just above the dino's max jump peak
     const maxJumpHeight = (JUMP_FORCE * JUMP_FORCE) / (2 * GRAVITY); // ~367.5px
     HUD_Y = Math.max(20, GROUND_Y - maxJumpHeight - 30);
-    // Sun position: top-right, ~2 inches from right edge and ~2 inches from top
-    SUN_RADIUS = Math.max(30, CANVAS_WIDTH * 0.03);
-    SUN_X = CANVAS_WIDTH - 192;
-    SUN_Y = 192;
+    // Sun position: top-right, proportional to screen size
+    SUN_RADIUS = Math.max(30, Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 0.06);
+    SUN_X = CANVAS_WIDTH - CANVAS_WIDTH * 0.1;
+    SUN_Y = CANVAS_HEIGHT * 0.15;
     if (dino && !dino.isJumping) {
         if (dino.isDucking) {
             dino.y = GROUND_Y + (dino.standHeight - dino.duckHeight);
@@ -598,7 +598,7 @@ const dino = {
 
 // Initialize canvas size
 resizeCanvas();
-window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+window.addEventListener('resize', () => { resizeCanvas(); initStars(); initSkyBirds(); initClouds(); initGround(); });
 
 // Arrays
 let obstacles = [];
@@ -1079,8 +1079,8 @@ function drawHealthHUD() {
     const gap = 6;
     const pad = 8;
     const headsW = 5 * headSize + 4 * gap;
-    const boxX = 102;
-    const boxY = 102;
+    const boxX = Math.max(10, CANVAS_WIDTH * 0.05);
+    const boxY = Math.max(10, CANVAS_HEIGHT * 0.05);
     const boxW = Math.max(headsW, 80) + pad * 2 + 6;
     const boxH = headDrawH + 30 + pad * 2;
     const headStartX = boxX + pad + 3;
@@ -1155,8 +1155,8 @@ function drawScoreHUD(scoreStr, hi) {
     const pad = 8;
     const boxW = 150;
     const boxH = hi > 0 ? 52 : 32;
-    const boxX = CANVAS_WIDTH - 102 - boxW;
-    const boxY = 102;
+    const boxX = CANVAS_WIDTH - Math.max(10, CANVAS_WIDTH * 0.05) - boxW;
+    const boxY = Math.max(10, CANVAS_HEIGHT * 0.05);
 
     ctx.save();
 
