@@ -332,7 +332,11 @@ if (isMobileDevice()) {
     if (typeof window.ethereum === 'undefined') {
         connectBtn.textContent = 'Open in MetaMask App';
     }
-    document.getElementById('start-hint').textContent = 'Touch to Start';
+    // Show touch start button, hide keyboard hint
+    const startBtn = document.getElementById('start-hint');
+    startBtn.style.display = '';
+    startBtn.addEventListener('click', () => startIntro());
+    document.getElementById('start-hint-text').style.display = 'none';
     document.getElementById('ctrl-jump-key').textContent = 'SWIPE UP';
     document.getElementById('ctrl-duck-key').textContent = 'SWIPE DOWN';
 }
