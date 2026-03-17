@@ -29,6 +29,22 @@ const sfxDinoHead = new Audio('dh.mp3');
 sfxDinoHead.volume = 0.5;
 function playDinoHead() { sfxDinoHead.currentTime = 0; sfxDinoHead.play().catch(() => {}); }
 
+const sfxDhHit = new Audio('dh_hit.mp3');
+sfxDhHit.volume = 0.5;
+function playDhHit() { sfxDhHit.currentTime = 0; sfxDhHit.play().catch(() => {}); }
+
+const sfxGameOver = new Audio('gameover.mp3');
+sfxGameOver.volume = 0.5;
+function playGameOver() { sfxGameOver.currentTime = 0; sfxGameOver.play().catch(() => {}); }
+
+const sfxImmunity = new Audio('immunity.mp3');
+sfxImmunity.volume = 0.5;
+function playImmunity() { sfxImmunity.currentTime = 0; sfxImmunity.play().catch(() => {}); }
+
+const sfxDash = new Audio('dash.mp3');
+sfxDash.volume = 0.5;
+function playDash() { sfxDash.currentTime = 0; sfxDash.play().catch(() => {}); }
+
 // Prevent iOS bounce/scroll/zoom globally
 document.addEventListener('touchmove', (e) => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
 const scoreDisplay = document.getElementById('score-display');
@@ -942,16 +958,18 @@ function updateCollectibles() {
         ) {
             const ctype = c.type;
             collectibles.splice(i, 1);
-            playPowerup();
 
             if (ctype === 'shield') {
+                playImmunity();
                 immunityActive = true;
                 immunityEndTime = Date.now() + IMMUNITY_DURATION_MS;
                 collectibleNextSpawnTime = Date.now() + SHIELD_COOLDOWN_MS;
             } else if (ctype === 'dash') {
+                playDash();
                 activateDash();
                 collectibleNextSpawnTime = Date.now() + DASH_COOLDOWN_MS;
             } else if (ctype === 'multiplier') {
+                playPowerup();
                 multiplierActive = true;
                 multiplierEndTime = Date.now() + MULTIPLIER_DURATION_MS;
                 collectibleNextSpawnTime = Date.now() + MULTIPLIER_COOLDOWN_MS;
@@ -2070,6 +2088,7 @@ function onGameOver() {
 function finishDeath() {
     gameState = 'over';
     gameOverAnimTimer = 0;
+    playGameOver();
 }
 
 // Input handling
@@ -2526,6 +2545,7 @@ function updateGame() {
             const fullHeads = Math.floor(dinoHeadPickups / 2);
             if (fullHeads > 0) {
                 // Consume 1 full head (2 pickups) and grant 2s immunity
+                playDhHit();
                 dinoHeadPickups -= 2;
                 healthHitImmune = true;
                 healthHitImmuneEnd = Date.now() + HEALTH_HIT_IMMUNITY_MS;
