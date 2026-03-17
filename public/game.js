@@ -1090,22 +1090,20 @@ function drawHealthHUD() {
 
     ctx.save();
 
-    // Retro black box background
-    const bgV = lerpV(0, 30);
+    // White box background (matches menu buttons)
+    const bgV = lerpV(255, 40);
     ctx.fillStyle = `rgb(${bgV},${bgV},${bgV})`;
     ctx.fillRect(boxX, boxY, boxW, boxH);
 
-    // Border (double-line retro style)
-    const borderV = lerpV(83, 200);
+    // Dark border
+    const borderV = lerpV(51, 200);
     ctx.strokeStyle = `rgb(${borderV},${borderV},${borderV})`;
     ctx.lineWidth = 2;
     ctx.strokeRect(boxX, boxY, boxW, boxH);
-    ctx.lineWidth = 1;
-    ctx.strokeRect(boxX + 3, boxY + 3, boxW - 6, boxH - 6);
 
     // Player name inside the box
     if (currentUsername) {
-        ctx.fillStyle = '#FFFFFF';
+        ctx.fillStyle = `rgb(${borderV},${borderV},${borderV})`;
         ctx.font = 'bold 16px "Courier New", monospace';
         ctx.textAlign = 'left';
         ctx.fillText(currentUsername.toUpperCase(), headStartX, boxY + pad + 14);
@@ -1162,28 +1160,27 @@ function drawScoreHUD(scoreStr, hi) {
 
     ctx.save();
 
-    // Retro black box
-    const bgV = lerpV(0, 30);
+    // White box background (matches menu buttons)
+    const bgV = lerpV(255, 40);
     ctx.fillStyle = `rgb(${bgV},${bgV},${bgV})`;
     ctx.fillRect(boxX, boxY, boxW, boxH);
 
-    // Double border
-    const borderV = lerpV(83, 200);
+    // Dark border
+    const borderV = lerpV(51, 200);
     ctx.strokeStyle = `rgb(${borderV},${borderV},${borderV})`;
     ctx.lineWidth = 2;
     ctx.strokeRect(boxX, boxY, boxW, boxH);
-    ctx.lineWidth = 1;
-    ctx.strokeRect(boxX + 3, boxY + 3, boxW - 6, boxH - 6);
 
     // Player score on top
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = `rgb(${borderV},${borderV},${borderV})`;
     ctx.font = 'bold 16px "Courier New", monospace';
     ctx.textAlign = 'center';
     ctx.fillText(scoreStr, boxX + boxW / 2, boxY + pad + 12);
 
     // High score below
     if (hi > 0) {
-        ctx.fillStyle = `rgb(${borderV},${borderV},${borderV})`;
+        const secV = lerpV(153, 120);
+        ctx.fillStyle = `rgb(${secV},${secV},${secV})`;
         ctx.font = 'bold 12px "Courier New", monospace';
         ctx.fillText('HI ' + String(hi).padStart(5, '0'), boxX + boxW / 2, boxY + pad + 30);
     }
