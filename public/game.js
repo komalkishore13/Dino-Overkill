@@ -182,8 +182,17 @@ function shortenAddress(addr) {
     return addr.slice(0, 6) + '...' + addr.slice(-4);
 }
 
+function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 async function connectMetaMask() {
     if (typeof window.ethereum === 'undefined') {
+        if (isMobileDevice()) {
+            // Deep link to open this game inside MetaMask's in-app browser
+            window.location.href = 'https://metamask.app.link/dapp/' + window.location.host + window.location.pathname;
+            return;
+        }
         connectError.textContent = 'MetaMask not found. Please install the extension.';
         return;
     }
@@ -318,6 +327,10 @@ async function submitUsername() {
 }
 
 // ======== BUTTON EVENTS ========
+// On mobile without MetaMask, update button text
+if (isMobileDevice() && typeof window.ethereum === 'undefined') {
+    connectBtn.textContent = 'Open in MetaMask App';
+}
 connectBtn.addEventListener('click', connectMetaMask);
 usernameBtn.addEventListener('click', submitUsername);
 usernameBackBtn.addEventListener('click', showConnectScreen);
