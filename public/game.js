@@ -2136,14 +2136,26 @@ canvas.addEventListener('touchend', (e) => {
     e.preventDefault();
     const elapsed = Date.now() - touchStartTime;
 
-    // Tap (no significant swipe) — used for start/restart
+    // Tap (no significant swipe) — used for start/restart/jump
     if (touchStartTime && elapsed < 300) {
+        const tapX = touchStartX;
+        const tapY = touchStartY;
+
         if (appState === 'menu') {
             startIntro();
+        } else if (appState === 'playing' && gameState === 'over' && _mobileGameOverBtns) {
+            // Check if tap hit Play Again or Main Menu buttons
+            const pa = _mobileGameOverBtns.playAgain;
+            const mm = _mobileGameOverBtns.mainMenu;
+            if (tapX >= pa.x && tapX <= pa.x + pa.w && tapY >= pa.y && tapY <= pa.y + pa.h) {
+                startIntro();
+            } else if (tapX >= mm.x && tapX <= mm.x + mm.w && tapY >= mm.y && tapY <= mm.y + mm.h) {
+                showMenu();
+            }
         } else if (appState === 'playing' && gameState === 'over') {
+            // Desktop fallback: tap anywhere to restart
             startIntro();
         } else if (appState === 'playing' && gameState === 'running' && !dino.isJumping) {
-            // Quick tap also jumps during gameplay
             dino.velocityY = JUMP_FORCE;
             dino.isJumping = true;
         }
@@ -2619,7 +2631,10 @@ function drawClouds() {
     });
 }
 
+let _mobileGameOverBtns = null;
+
 function drawGameOverWithLeaderboard() {
+    _mobileGameOverBtns = null; // reset each frame
     const mobile = isMobileDevice();
     const isNarrow = CANVAS_WIDTH < 700;
 
@@ -2641,7 +2656,7 @@ function drawGameOverWithLeaderboard() {
         const startX = Math.floor((CANVAS_WIDTH - boxW) / 2);
 
         // Box 1: Game Over / New High Score + Score + Restart hint
-        const box1H = 160;
+        const box1H = 140;
         const box1Y = 20 + (1 - ease) * -200;
         ctx.save();
         ctx.beginPath(); ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.clip();
@@ -2672,9 +2687,6 @@ function drawGameOverWithLeaderboard() {
         ctx.font = 'bold 24px "Courier New", monospace';
         ctx.fillText(String(score), goCx, box1Y + 120);
 
-        ctx.fillStyle = '#777';
-        ctx.font = 'bold 14px "Courier New", monospace';
-        ctx.fillText(mobile ? 'Tap to Restart' : 'SPACE to Restart', goCx, box1Y + 148);
         ctx.restore();
 
         // Box 2: Leaderboard
@@ -2715,6 +2727,41 @@ function drawGameOverWithLeaderboard() {
             ly += rowH;
         }
         ctx.restore();
+
+        // Box 3: Play Again + Main Menu buttons
+        const btnBoxY = lbY + lbH + 12;
+        const btnH = 44;
+        const btnGap = 10;
+        const btnBoxH = btnH * 2 + btnGap + 24;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.clip();
+        ctx.fillStyle = '#111';
+        ctx.fillRect(startX, btnBoxY, boxW, btnBoxH);
+
+        // Play Again button
+        const playBtnY = btnBoxY + 12;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(startX + panelPad, playBtnY, boxW - panelPad * 2, btnH);
+        ctx.fillStyle = '#111';
+        ctx.font = 'bold 16px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Play Again', startX + boxW / 2, playBtnY + 28);
+
+        // Main Menu button
+        const menuBtnY = playBtnY + btnH + btnGap;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(startX + panelPad, menuBtnY, boxW - panelPad * 2, btnH);
+        ctx.fillStyle = '#fff';
+        ctx.fillText('Main Menu', startX + boxW / 2, menuBtnY + 28);
+
+        ctx.restore();
+
+        // Store button hit areas for touch handling
+        _mobileGameOverBtns = {
+            playAgain: { x: startX + panelPad, y: playBtnY, w: boxW - panelPad * 2, h: btnH },
+            mainMenu: { x: startX + panelPad, y: menuBtnY, w: boxW - panelPad * 2, h: btnH }
+        };
     } else {
         // ===== DESKTOP: 3 boxes in a row =====
         const cy = CANVAS_HEIGHT / 2;
@@ -2913,16 +2960,32 @@ function renderGame() {
 }
 
 // Game loop
-function gameLoop() {
+let _lastFrameTime = 0;
+let _accumTime = 0;
+const TARGET_FRAME_MS = 1000 / 60; // 16.67ms per tick at 60fps
+
+function gameLoop(timestamp) {
+    if (!_lastFrameTime) _lastFrameTime = timestamp;
+    const delta = Math.min(timestamp - _lastFrameTime, 100); // cap at 100ms to avoid spiral
+    _lastFrameTime = timestamp;
+
     if (appState === 'playing') {
+        _accumTime += delta;
+        // Run fixed-step updates to match 60fps regardless of actual frame rate
+        while (_accumTime >= TARGET_FRAME_MS) {
+            _accumTime -= TARGET_FRAME_MS;
+            if (gameState === 'intro') {
+                updateIntro();
+            } else if (gameState === 'dying') {
+                updateDying();
+            } else {
+                updateGame();
+            }
+        }
+        // Render once per frame
         if (gameState === 'intro') {
-            updateIntro();
             renderIntro();
-        } else if (gameState === 'dying') {
-            updateDying();
-            renderGame();
         } else {
-            updateGame();
             renderGame();
         }
     }
