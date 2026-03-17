@@ -254,7 +254,6 @@ function showUsernameScreen() {
 
 async function showMenu() {
     appState = 'menu';
-    if (rotateOverlay) rotateOverlay.style.display = 'none';
     showLoading();
     const player = await getPlayer(currentUsername);
     menuWelcome.textContent = 'Welcome, ' + currentUsername + '!';
@@ -629,21 +628,7 @@ const dino = {
 
 // Initialize canvas size
 resizeCanvas();
-window.addEventListener('resize', () => { resizeCanvas(); initStars(); initSkyBirds(); initClouds(); initGround(); checkOrientation(); });
-
-// Show "rotate phone" overlay when in portrait on mobile
-const rotateOverlay = document.getElementById('rotate-overlay');
-function checkOrientation() {
-    if (isMobileDevice() && rotateOverlay) {
-        if (window.innerHeight > window.innerWidth && appState === 'playing') {
-            rotateOverlay.style.display = 'flex';
-        } else {
-            rotateOverlay.style.display = 'none';
-        }
-    }
-}
-checkOrientation();
-window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+window.addEventListener('resize', () => { resizeCanvas(); initStars(); initSkyBirds(); initClouds(); initGround(); });
 
 // Arrays
 let obstacles = [];
@@ -1975,19 +1960,6 @@ function startIntro() {
     appState = 'playing';
     showScreen(null); // hide all overlays
     gameState = 'intro';
-    // Try to lock landscape on mobile
-    if (isMobileDevice()) {
-        try {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().then(() => {
-                    if (screen.orientation && screen.orientation.lock) {
-                        screen.orientation.lock('landscape').catch(() => {});
-                    }
-                }).catch(() => {});
-            }
-        } catch (e) {}
-    }
-    checkOrientation();
 
     // Reset intro state
     introPhase = 0;
