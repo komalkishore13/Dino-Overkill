@@ -45,7 +45,7 @@
             <p id="menu-welcome" class="welcome-text"></p>
             <p id="menu-best" class="best-score-text"></p>
             <div class="menu-buttons">
-                <button class="btn btn-primary space-hint" id="start-hint" style="display:none;">Touch to Start</button>
+                <button class="btn btn-primary" id="start-hint" style="display:none;">Touch to Start</button>
                 <p class="space-hint" id="start-hint-text">Press SPACE to Start</p>
                 <button id="menu-leaderboard-btn" class="btn">Leaderboard</button>
                 <button id="menu-highscores-btn" class="btn">High Scores</button>
@@ -91,6 +91,12 @@
             <div class="retro-loader"></div>
             <p class="loading-text">L O A D I N G</p>
         </div>
+    </div>
+
+    <!-- Rotate Phone Overlay -->
+    <div id="rotate-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:9999;justify-content:center;align-items:center;flex-direction:column;font-family:'Courier New',monospace;text-align:center;">
+        <div style="font-size:60px;">&#x1F4F1;&#x21BB;</div>
+        <p style="font-size:18px;font-weight:bold;margin-top:20px;color:#333;">Rotate your phone<br>to landscape</p>
     </div>
 
     <script src="game.js"></script>
