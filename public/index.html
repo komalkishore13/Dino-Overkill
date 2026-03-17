@@ -45,7 +45,7 @@
             <p id="menu-welcome" class="welcome-text"></p>
             <p id="menu-best" class="best-score-text"></p>
             <div class="menu-buttons">
-                <p class="space-hint">Press SPACE to Start</p>
+                <p class="space-hint" id="start-hint">Press SPACE to Start</p>
                 <button id="menu-leaderboard-btn" class="btn">Leaderboard</button>
                 <button id="menu-highscores-btn" class="btn">High Scores</button>
                 <button id="menu-controls-btn" class="btn">Controls</button>
@@ -68,8 +68,8 @@
         <div class="overlay-box">
             <h2>C O N T R O L S</h2>
             <div class="controls-list">
-                <div class="control-row"><span class="control-key">SPACE</span><span class="control-action">Jump</span></div>
-                <div class="control-row"><span class="control-key">DOWN / S</span><span class="control-action">Duck</span></div>
+                <div class="control-row"><span class="control-key" id="ctrl-jump-key">SPACE</span><span class="control-action">Jump</span></div>
+                <div class="control-row"><span class="control-key" id="ctrl-duck-key">DOWN / S</span><span class="control-action">Duck</span></div>
             </div>
             <button id="controls-back-btn" class="btn">Back</button>
         </div>

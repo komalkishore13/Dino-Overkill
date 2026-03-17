@@ -328,8 +328,13 @@ async function submitUsername() {
 
 // ======== BUTTON EVENTS ========
 // On mobile without MetaMask, update button text
-if (isMobileDevice() && typeof window.ethereum === 'undefined') {
-    connectBtn.textContent = 'Open in MetaMask App';
+if (isMobileDevice()) {
+    if (typeof window.ethereum === 'undefined') {
+        connectBtn.textContent = 'Open in MetaMask App';
+    }
+    document.getElementById('start-hint').textContent = 'Touch to Start';
+    document.getElementById('ctrl-jump-key').textContent = 'SWIPE UP';
+    document.getElementById('ctrl-duck-key').textContent = 'SWIPE DOWN';
 }
 connectBtn.addEventListener('click', connectMetaMask);
 usernameBtn.addEventListener('click', submitUsername);
@@ -2750,13 +2755,16 @@ function drawGameOverWithLeaderboard() {
 
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 18px "Courier New", monospace';
-    ctx.fillText('Press SPACE', ctrlCx, ctrlCy - 20);
+    const mobile = isMobileDevice();
+    ctx.fillText(mobile ? 'Tap' : 'Press SPACE', ctrlCx, ctrlCy - 20);
     ctx.fillText('to Restart', ctrlCx, ctrlCy + 6);
 
     ctx.fillStyle = '#777';
     ctx.font = '14px "Courier New", monospace';
-    ctx.fillText('Press ESC', ctrlCx, ctrlCy + 50);
-    ctx.fillText('for Main Menu', ctrlCx, ctrlCy + 68);
+    if (!mobile) {
+        ctx.fillText('Press ESC', ctrlCx, ctrlCy + 50);
+        ctx.fillText('for Main Menu', ctrlCx, ctrlCy + 68);
+    }
     ctx.restore(); // end right clip
 
     ctx.textAlign = 'left';
