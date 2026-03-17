@@ -7,7 +7,7 @@ const sfxJump = new Audio('jump.mp3');
 sfxJump.volume = 0.5;
 function playJump() { sfxJump.currentTime = 0; sfxJump.play().catch(() => {}); }
 
-const sfxMenu = new Audio('main_menu.mp3');
+const sfxMenu = new Audio('mm_sfx.mp3');
 sfxMenu.volume = 0.4;
 sfxMenu.loop = true;
 function playMenuMusic() { sfxMenu.currentTime = 0; sfxMenu.play().catch(() => {}); }
@@ -16,6 +16,14 @@ function stopMenuMusic() { sfxMenu.pause(); sfxMenu.currentTime = 0; }
 const sfxHit = new Audio('hit.mp3');
 sfxHit.volume = 0.6;
 function playHit() { sfxHit.currentTime = 0; sfxHit.play().catch(() => {}); }
+
+const sfxPowerup = new Audio('powerup.mp3');
+sfxPowerup.volume = 0.5;
+function playPowerup() { sfxPowerup.currentTime = 0; sfxPowerup.play().catch(() => {}); }
+
+const sfxDinoHead = new Audio('dh.mp3');
+sfxDinoHead.volume = 0.5;
+function playDinoHead() { sfxDinoHead.currentTime = 0; sfxDinoHead.play().catch(() => {}); }
 
 // Prevent iOS bounce/scroll/zoom globally
 document.addEventListener('touchmove', (e) => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
@@ -930,6 +938,7 @@ function updateCollectibles() {
         ) {
             const ctype = c.type;
             collectibles.splice(i, 1);
+            playPowerup();
 
             if (ctype === 'shield') {
                 immunityActive = true;
@@ -994,6 +1003,7 @@ function updateCollectibles() {
             dino.y + dino.height - pad > h.y + pad
         ) {
             healthHeads.splice(i, 1);
+            playDinoHead();
             if (dinoHeadPickups < MAX_DINO_PICKUPS) {
                 dinoHeadPickups++;
             }
