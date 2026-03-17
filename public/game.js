@@ -970,7 +970,7 @@ function updateCollectibles() {
                 activateDash();
                 collectibleNextSpawnTime = Date.now() + DASH_COOLDOWN_MS;
             } else if (ctype === 'multiplier') {
-                playPowerup();
+                playImmunity();
                 multiplierActive = true;
                 multiplierEndTime = Date.now() + MULTIPLIER_DURATION_MS;
                 collectibleNextSpawnTime = Date.now() + MULTIPLIER_COOLDOWN_MS;
@@ -991,7 +991,7 @@ function updateCollectibles() {
     if (multiplierActive) {
         if (Date.now() >= multiplierEndTime) {
             multiplierActive = false;
-            sfxPowerup.pause(); sfxPowerup.currentTime = 0;
+            sfxImmunity.pause(); sfxImmunity.currentTime = 0;
             if (!dashActive && !immunityActive) resumeMenuMusic();
         }
     }
