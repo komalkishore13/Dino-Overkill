@@ -610,7 +610,7 @@ let skyBirds = [];
 
 function initSkyBirds() {
     skyBirds = [];
-    const count = 33 + Math.floor(Math.random() * 5); // 33-37 birds
+    const count = 48 + Math.floor(Math.random() * 5); // 48-52 birds
     for (let i = 0; i < count; i++) {
         skyBirds.push({
             x: Math.random() * CANVAS_WIDTH,
@@ -618,7 +618,7 @@ function initSkyBirds() {
             speed: 0.3 + Math.random() * 0.5,
             wingPhase: Math.random() * Math.PI * 2,
             wingSpeed: 0.08 + Math.random() * 0.06,
-            size: 4.3 + Math.random() * 5.8, // small silhouettes (20% bigger again)
+            size: 5.6 + Math.random() * 7.5, // silhouettes (30% bigger)
             drift: Math.random() * 0.3 - 0.15 // slight vertical drift
         });
     }
@@ -1189,7 +1189,7 @@ function drawScoreHUD(scoreStr, hi) {
 }
 
 function drawPowerTimerBar(frac, blink, message, seconds) {
-    const barH = 8;
+    const barH = 12;
     const barY = GROUND_LINE + 20;
     const fillW = CANVAS_WIDTH * frac;
     ctx.save();
@@ -1232,13 +1232,18 @@ function drawPowerTimerBar(frac, blink, message, seconds) {
 
     ctx.restore();
 
-    // Message below the bar
+    // Message centered on screen
+    const centerY = CANVAS_HEIGHT * 0.4;
     ctx.save();
     ctx.globalAlpha = 0.8 * blink;
     ctx.fillStyle = getHudColor();
-    ctx.font = 'bold 20px "Courier New", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(message + ' ' + seconds + 's', CANVAS_WIDTH / 2, barY + barH + 22);
+    // Power-up name (40px — 100% bigger than original 20px)
+    ctx.font = 'bold 40px "Courier New", monospace';
+    ctx.fillText(message, CANVAS_WIDTH / 2, centerY);
+    // Seconds (60px — 200% bigger than original 20px)
+    ctx.font = 'bold 60px "Courier New", monospace';
+    ctx.fillText(seconds + 's', CANVAS_WIDTH / 2, centerY + 60);
     ctx.restore();
 }
 
@@ -1286,7 +1291,7 @@ function drawImmunityEffect() {
     }
 
     // Full-width timer bar below ground line
-    drawPowerTimerBar(remainMs / IMMUNITY_DURATION_MS, blink, 'Immune for', Math.ceil(remainMs / 1000));
+    drawPowerTimerBar(remainMs / IMMUNITY_DURATION_MS, blink, 'Immune', Math.ceil(remainMs / 1000));
 
     ctx.restore();
 }
@@ -1343,7 +1348,7 @@ function drawDashEffect() {
     });
 
     // Full-width timer bar below ground line
-    drawPowerTimerBar(remaining / DASH_DURATION_MS, blink, 'Dashing for', Math.ceil(remaining / 1000));
+    drawPowerTimerBar(remaining / DASH_DURATION_MS, blink, 'Dashing', Math.ceil(remaining / 1000));
 
     // Small dash icon above dino
     const dcx = dino.x + dino.width / 2;
@@ -1374,7 +1379,7 @@ function drawMultiplierEffect() {
     }
 
     // Full-width timer bar below ground line
-    drawPowerTimerBar(remainMs / MULTIPLIER_DURATION_MS, blink, 'Score multiplied for', Math.ceil(remainMs / 1000));
+    drawPowerTimerBar(remainMs / MULTIPLIER_DURATION_MS, blink, '2x Multiplier', Math.ceil(remainMs / 1000));
 
     // "2X" text on HUD (top right area, below score)
     ctx.globalAlpha = 0.8 * blink;
