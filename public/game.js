@@ -820,6 +820,7 @@ function updateDash() {
 
     if (remaining <= 0) {
         // Dash ended — snap dino back + grant 2s immunity grace period
+        sfxDash.pause(); sfxDash.currentTime = 0;
         dashActive = false;
         dashPhase = 'idle';
         dino.x = dashOriginalX;
@@ -981,6 +982,7 @@ function updateCollectibles() {
     if (immunityActive) {
         if (Date.now() >= immunityEndTime) {
             immunityActive = false;
+            sfxImmunity.pause(); sfxImmunity.currentTime = 0;
         }
     }
 
@@ -988,6 +990,7 @@ function updateCollectibles() {
     if (multiplierActive) {
         if (Date.now() >= multiplierEndTime) {
             multiplierActive = false;
+            sfxPowerup.pause(); sfxPowerup.currentTime = 0;
         }
     }
 
@@ -2071,6 +2074,9 @@ function startGame() {
 
 function onGameOver() {
     playHit();
+    sfxImmunity.pause(); sfxImmunity.currentTime = 0;
+    sfxDash.pause(); sfxDash.currentTime = 0;
+    sfxPowerup.pause(); sfxPowerup.currentTime = 0;
     gameState = 'dying';
     deathTimer = 0;
     deathDinoVelY = -6; // pop up first
