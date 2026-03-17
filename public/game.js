@@ -2,6 +2,11 @@
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
+// ======== SFX ========
+const sfxJump = new Audio('jump.mp3');
+sfxJump.volume = 0.5;
+function playJump() { sfxJump.currentTime = 0; sfxJump.play().catch(() => {}); }
+
 // Prevent iOS bounce/scroll/zoom globally
 document.addEventListener('touchmove', (e) => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
 const scoreDisplay = document.getElementById('score-display');
@@ -2058,6 +2063,7 @@ document.addEventListener('keydown', (e) => {
             } else if (gameState === 'running' && !dino.isJumping) {
                 dino.velocityY = JUMP_FORCE;
                 dino.isJumping = true;
+                playJump();
             }
         }
     }
@@ -2115,6 +2121,7 @@ canvas.addEventListener('touchmove', (e) => {
         if (appState === 'playing' && gameState === 'running' && !dino.isJumping) {
             dino.velocityY = JUMP_FORCE;
             dino.isJumping = true;
+            playJump();
         }
         touchStartTime = 0; // consume swipe
     }
@@ -2158,6 +2165,7 @@ canvas.addEventListener('touchend', (e) => {
         } else if (appState === 'playing' && gameState === 'running' && !dino.isJumping) {
             dino.velocityY = JUMP_FORCE;
             dino.isJumping = true;
+            playJump();
         }
     }
 
