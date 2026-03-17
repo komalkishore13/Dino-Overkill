@@ -2008,7 +2008,6 @@ function resetGame() {
 }
 
 function startIntro() {
-    stopMenuMusic();
     playGameStart();
     appState = 'playing';
     showScreen(null); // hide all overlays
