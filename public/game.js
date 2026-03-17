@@ -7,6 +7,12 @@ const sfxJump = new Audio('jump.mp3');
 sfxJump.volume = 0.5;
 function playJump() { sfxJump.currentTime = 0; sfxJump.play().catch(() => {}); }
 
+const sfxMenu = new Audio('main_menu.mp3');
+sfxMenu.volume = 0.4;
+sfxMenu.loop = true;
+function playMenuMusic() { sfxMenu.currentTime = 0; sfxMenu.play().catch(() => {}); }
+function stopMenuMusic() { sfxMenu.pause(); sfxMenu.currentTime = 0; }
+
 // Prevent iOS bounce/scroll/zoom globally
 document.addEventListener('touchmove', (e) => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
 const scoreDisplay = document.getElementById('score-display');
@@ -266,6 +272,7 @@ async function showMenu() {
     highScore = player?.bestScore || 0;
     showScreen(menuScreen);
     fetchLeaderboard(); // pre-warm cache for game-over screen
+    playMenuMusic();
 }
 
 async function showLeaderboard(fromGameOver) {
@@ -1962,6 +1969,7 @@ function resetGame() {
 }
 
 function startIntro() {
+    stopMenuMusic();
     appState = 'playing';
     showScreen(null); // hide all overlays
     gameState = 'intro';
