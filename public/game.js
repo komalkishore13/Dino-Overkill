@@ -375,10 +375,15 @@ let CANVAS_WIDTH, CANVAS_HEIGHT, GROUND_LINE, GROUND_Y, HUD_Y;
 let SUN_X, SUN_Y, SUN_RADIUS;
 
 function resizeCanvas() {
+    // On mobile, cap pixel ratio to 1 for performance
+    const dpr = isMobileDevice() ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     CANVAS_WIDTH = window.innerWidth;
     CANVAS_HEIGHT = window.innerHeight;
-    canvas.width = CANVAS_WIDTH;
-    canvas.height = CANVAS_HEIGHT;
+    canvas.width = Math.floor(CANVAS_WIDTH * dpr);
+    canvas.height = Math.floor(CANVAS_HEIGHT * dpr);
+    canvas.style.width = CANVAS_WIDTH + 'px';
+    canvas.style.height = CANVAS_HEIGHT + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     GROUND_LINE = Math.floor(CANVAS_HEIGHT * 0.69);
     GROUND_Y = GROUND_LINE - DINO_DRAW_H;
     // HUD sits just above the dino's max jump peak
@@ -635,7 +640,7 @@ let skyBirds = [];
 
 function initSkyBirds() {
     skyBirds = [];
-    const count = 48 + Math.floor(Math.random() * 5); // 48-52 birds
+    const count = isMobileDevice() ? 15 + Math.floor(Math.random() * 5) : 48 + Math.floor(Math.random() * 5);
     for (let i = 0; i < count; i++) {
         skyBirds.push({
             x: Math.random() * CANVAS_WIDTH,
@@ -2615,161 +2620,220 @@ function drawClouds() {
 }
 
 function drawGameOverWithLeaderboard() {
-    const cy = CANVAS_HEIGHT / 2;
+    const mobile = isMobileDevice();
+    const isNarrow = CANVAS_WIDTH < 700;
 
-    // ===== Layout: 3 equal boxes in a row =====
     const lb = getLeaderboard();
-    const displayCount = Math.min(lb.length, 10);
+    const displayCount = Math.min(lb.length, isNarrow ? 5 : 10);
     const rowH = 24;
-    const panelPad = 20;
+    const panelPad = 16;
 
-    // Leaderboard box height drives all boxes
-    const lbContentH = 40 + 30 + 20 + Math.max(displayCount, 2) * rowH + 20;
-    const boxH = Math.max(lbContentH, 200);
-    const boxW = Math.min(320, (CANVAS_WIDTH - 120) / 3);
-    const gap = 30;
-    const totalW = boxW * 3 + gap * 2;
-    const startX = Math.floor((CANVAS_WIDTH - totalW) / 2);
-    const boxY = Math.floor(cy - boxH / 2);
-
-    // Fade in overlay (adapts to theme: white in day, dark-tinted in night)
+    // Fade in overlay
     const t = Math.min(1, gameOverAnimTimer / GAMEOVER_ANIM_DURATION);
     const ov = lerpV(255, 40);
     ctx.fillStyle = `rgba(${ov}, ${ov}, ${ov}, ${(0.85 * t).toFixed(2)})`;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    const ease = 1 - Math.pow(1 - t, 3); // cubic ease-out
+    const ease = 1 - Math.pow(1 - t, 3);
 
-    // Slide offsets
-    const lbSlide = (1 - ease) * (-boxW - startX - 50);  // from left
-    const goSlide = (1 - ease) * (-boxY - boxH - 50);     // from top
-    const ctrlSlide = (1 - ease) * (CANVAS_WIDTH + 50);   // from right
+    if (isNarrow) {
+        // ===== MOBILE / NARROW: Stacked vertical layout =====
+        const boxW = Math.min(CANVAS_WIDTH - 40, 320);
+        const startX = Math.floor((CANVAS_WIDTH - boxW) / 2);
 
-    // ===== BOX 1 (LEFT): Leaderboard — slides from left =====
-    const lbX = startX + lbSlide;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.clip();
-    ctx.fillStyle = '#111';
-    ctx.fillRect(lbX, boxY, boxW, boxH);
+        // Box 1: Game Over / New High Score + Score + Restart hint
+        const box1H = 160;
+        const box1Y = 20 + (1 - ease) * -200;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.clip();
+        ctx.fillStyle = '#111';
+        ctx.fillRect(startX, box1Y, boxW, box1H);
+        const goCx = startX + boxW / 2;
+        ctx.textAlign = 'center';
 
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 14px "Courier New", monospace';
-    let ly = boxY + 28;
-    ctx.fillText('L E A D E R B O A R D', lbX + boxW / 2, ly);
-    ly += 22;
-
-    ctx.fillStyle = '#555';
-    ctx.fillRect(lbX + panelPad, ly, boxW - panelPad * 2, 1);
-    ly += 16;
-
-    ctx.font = 'bold 11px "Courier New", monospace';
-    ctx.fillStyle = '#888';
-    ctx.textAlign = 'left';
-    ctx.fillText('#', lbX + panelPad, ly);
-    ctx.fillText('PLAYER', lbX + panelPad + 28, ly);
-    ctx.textAlign = 'right';
-    ctx.fillText('BEST', lbX + boxW - panelPad, ly);
-    ly += 6;
-    ctx.fillStyle = '#444';
-    ctx.fillRect(lbX + panelPad, ly, boxW - panelPad * 2, 1);
-    ly += 14;
-
-    for (let i = 0; i < displayCount; i++) {
-        const entry = lb[i];
-        const isMe = entry.username === currentUsername;
-
-        if (isMe) {
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(lbX + panelPad - 4, ly - 12, boxW - panelPad * 2 + 8, 20);
-            ctx.fillStyle = '#000';
-            ctx.font = 'bold 13px "Courier New", monospace';
+        if (highScoreBeaten) {
+            const blink = Math.floor(Date.now() / 300) % 2 === 0;
+            if (blink) {
+                ctx.fillStyle = '#fff';
+                ctx.font = '900 22px "Courier New", monospace';
+                ctx.fillText('N E W  H I G H', goCx, box1Y + 30);
+                ctx.fillText('S C O R E !', goCx, box1Y + 55);
+            }
         } else {
-            ctx.fillStyle = '#ccc';
-            ctx.font = '13px "Courier New", monospace';
-        }
-
-        ctx.textAlign = 'left';
-        ctx.fillText((i + 1) + '.', lbX + panelPad, ly);
-        ctx.fillText(entry.username, lbX + panelPad + 28, ly);
-        ctx.textAlign = 'right';
-        ctx.fillText(String(entry.bestScore), lbX + boxW - panelPad, ly);
-
-        if (isMe && highScoreBeaten) {
-            ctx.fillStyle = '#000';
-            ctx.font = 'bold 9px "Courier New", monospace';
-            ctx.fillText('NEW!', lbX + boxW - panelPad, ly - 11);
-        }
-
-        ly += rowH;
-    }
-    ctx.restore(); // end leaderboard clip
-
-    // ===== BOX 2 (CENTER): Game Over + Score — drops from top =====
-    const goX = startX + boxW + gap;
-    const goY = boxY + goSlide;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.clip();
-    ctx.fillStyle = '#111';
-    ctx.fillRect(goX, goY, boxW, boxH);
-
-    const goCx = goX + boxW / 2;
-    const goCy = goY + boxH / 2;
-    ctx.textAlign = 'center';
-
-    if (highScoreBeaten) {
-        const blink = Math.floor(Date.now() / 300) % 2 === 0;
-        if (blink) {
             ctx.fillStyle = '#fff';
-            ctx.font = '900 28px "Courier New", monospace';
-            ctx.fillText('N E W', goCx, goCy - 40);
-            ctx.fillText('H I G H', goCx, goCy - 10);
-            ctx.fillText('S C O R E !', goCx, goCy + 20);
+            ctx.font = 'bold 28px "Courier New", monospace';
+            ctx.fillText('G A M E', goCx, box1Y + 35);
+            ctx.fillText('O V E R', goCx, box1Y + 65);
         }
-    } else {
+
+        ctx.fillStyle = '#888';
+        ctx.font = '12px "Courier New", monospace';
+        ctx.fillText('SCORE', goCx, box1Y + 95);
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 34px "Courier New", monospace';
-        ctx.fillText('G A M E', goCx, goCy - 20);
-        ctx.fillText('O V E R', goCx, goCy + 20);
-    }
+        ctx.font = 'bold 24px "Courier New", monospace';
+        ctx.fillText(String(score), goCx, box1Y + 120);
 
-    ctx.fillStyle = '#888';
-    ctx.font = '14px "Courier New", monospace';
-    ctx.fillText('SCORE', goCx, goCy + 55);
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 26px "Courier New", monospace';
-    ctx.fillText(String(score), goCx, goCy + 82);
-    ctx.restore(); // end center clip
+        ctx.fillStyle = '#777';
+        ctx.font = 'bold 14px "Courier New", monospace';
+        ctx.fillText(mobile ? 'Tap to Restart' : 'SPACE to Restart', goCx, box1Y + 148);
+        ctx.restore();
 
-    // ===== BOX 3 (RIGHT): Controls — slides from right =====
-    const ctrlX = startX + (boxW + gap) * 2 + ctrlSlide;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.clip();
-    ctx.fillStyle = '#111';
-    ctx.fillRect(ctrlX, boxY, boxW, boxH);
+        // Box 2: Leaderboard
+        const lbH = 60 + displayCount * rowH + 10;
+        const lbY = box1Y + box1H + 12;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.clip();
+        ctx.fillStyle = '#111';
+        ctx.fillRect(startX, lbY, boxW, lbH);
 
-    const ctrlCx = ctrlX + boxW / 2;
-    const ctrlCy = boxY + boxH / 2;
-    ctx.textAlign = 'center';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 12px "Courier New", monospace';
+        let ly = lbY + 22;
+        ctx.fillText('L E A D E R B O A R D', startX + boxW / 2, ly);
+        ly += 16;
+        ctx.fillStyle = '#555';
+        ctx.fillRect(startX + panelPad, ly, boxW - panelPad * 2, 1);
+        ly += 14;
 
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 18px "Courier New", monospace';
-    const mobile = isMobileDevice();
-    ctx.fillText(mobile ? 'Tap' : 'Press SPACE', ctrlCx, ctrlCy - 20);
-    ctx.fillText('to Restart', ctrlCx, ctrlCy + 6);
+        for (let i = 0; i < displayCount; i++) {
+            const entry = lb[i];
+            const isMe = entry.username === currentUsername;
+            if (isMe) {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(startX + panelPad - 4, ly - 12, boxW - panelPad * 2 + 8, 20);
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 12px "Courier New", monospace';
+            } else {
+                ctx.fillStyle = '#ccc';
+                ctx.font = '12px "Courier New", monospace';
+            }
+            ctx.textAlign = 'left';
+            ctx.fillText((i + 1) + '.', startX + panelPad, ly);
+            ctx.fillText(entry.username, startX + panelPad + 24, ly);
+            ctx.textAlign = 'right';
+            ctx.fillText(String(entry.bestScore), startX + boxW - panelPad, ly);
+            ly += rowH;
+        }
+        ctx.restore();
+    } else {
+        // ===== DESKTOP: 3 boxes in a row =====
+        const cy = CANVAS_HEIGHT / 2;
+        const lbContentH = 40 + 30 + 20 + Math.max(displayCount, 2) * rowH + 20;
+        const boxH = Math.max(lbContentH, 200);
+        const boxW = Math.min(320, (CANVAS_WIDTH - 120) / 3);
+        const gap = 30;
+        const totalW = boxW * 3 + gap * 2;
+        const startX = Math.floor((CANVAS_WIDTH - totalW) / 2);
+        const boxY = Math.floor(cy - boxH / 2);
 
-    ctx.fillStyle = '#777';
-    ctx.font = '14px "Courier New", monospace';
-    if (!mobile) {
+        const lbSlide = (1 - ease) * (-boxW - startX - 50);
+        const goSlide = (1 - ease) * (-boxY - boxH - 50);
+        const ctrlSlide = (1 - ease) * (CANVAS_WIDTH + 50);
+
+        // BOX 1: Leaderboard
+        const lbX = startX + lbSlide;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.clip();
+        ctx.fillStyle = '#111';
+        ctx.fillRect(lbX, boxY, boxW, boxH);
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 14px "Courier New", monospace';
+        let ly = boxY + 28;
+        ctx.fillText('L E A D E R B O A R D', lbX + boxW / 2, ly);
+        ly += 22;
+        ctx.fillStyle = '#555';
+        ctx.fillRect(lbX + panelPad, ly, boxW - panelPad * 2, 1);
+        ly += 16;
+        ctx.font = 'bold 11px "Courier New", monospace';
+        ctx.fillStyle = '#888';
+        ctx.textAlign = 'left';
+        ctx.fillText('#', lbX + panelPad, ly);
+        ctx.fillText('PLAYER', lbX + panelPad + 28, ly);
+        ctx.textAlign = 'right';
+        ctx.fillText('BEST', lbX + boxW - panelPad, ly);
+        ly += 6;
+        ctx.fillStyle = '#444';
+        ctx.fillRect(lbX + panelPad, ly, boxW - panelPad * 2, 1);
+        ly += 14;
+        for (let i = 0; i < displayCount; i++) {
+            const entry = lb[i];
+            const isMe = entry.username === currentUsername;
+            if (isMe) {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(lbX + panelPad - 4, ly - 12, boxW - panelPad * 2 + 8, 20);
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 13px "Courier New", monospace';
+            } else {
+                ctx.fillStyle = '#ccc';
+                ctx.font = '13px "Courier New", monospace';
+            }
+            ctx.textAlign = 'left';
+            ctx.fillText((i + 1) + '.', lbX + panelPad, ly);
+            ctx.fillText(entry.username, lbX + panelPad + 28, ly);
+            ctx.textAlign = 'right';
+            ctx.fillText(String(entry.bestScore), lbX + boxW - panelPad, ly);
+            if (isMe && highScoreBeaten) {
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 9px "Courier New", monospace';
+                ctx.fillText('NEW!', lbX + boxW - panelPad, ly - 11);
+            }
+            ly += rowH;
+        }
+        ctx.restore();
+
+        // BOX 2: Game Over + Score
+        const goX = startX + boxW + gap;
+        const goY = boxY + goSlide;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.clip();
+        ctx.fillStyle = '#111';
+        ctx.fillRect(goX, goY, boxW, boxH);
+        const goCx = goX + boxW / 2;
+        const goCy = goY + boxH / 2;
+        ctx.textAlign = 'center';
+        if (highScoreBeaten) {
+            const blink = Math.floor(Date.now() / 300) % 2 === 0;
+            if (blink) {
+                ctx.fillStyle = '#fff';
+                ctx.font = '900 28px "Courier New", monospace';
+                ctx.fillText('N E W', goCx, goCy - 40);
+                ctx.fillText('H I G H', goCx, goCy - 10);
+                ctx.fillText('S C O R E !', goCx, goCy + 20);
+            }
+        } else {
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 34px "Courier New", monospace';
+            ctx.fillText('G A M E', goCx, goCy - 20);
+            ctx.fillText('O V E R', goCx, goCy + 20);
+        }
+        ctx.fillStyle = '#888';
+        ctx.font = '14px "Courier New", monospace';
+        ctx.fillText('SCORE', goCx, goCy + 55);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 26px "Courier New", monospace';
+        ctx.fillText(String(score), goCx, goCy + 82);
+        ctx.restore();
+
+        // BOX 3: Controls
+        const ctrlX = startX + (boxW + gap) * 2 + ctrlSlide;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); ctx.clip();
+        ctx.fillStyle = '#111';
+        ctx.fillRect(ctrlX, boxY, boxW, boxH);
+        const ctrlCx = ctrlX + boxW / 2;
+        const ctrlCy = boxY + boxH / 2;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 18px "Courier New", monospace';
+        ctx.fillText('Press SPACE', ctrlCx, ctrlCy - 20);
+        ctx.fillText('to Restart', ctrlCx, ctrlCy + 6);
+        ctx.fillStyle = '#777';
+        ctx.font = '14px "Courier New", monospace';
         ctx.fillText('Press ESC', ctrlCx, ctrlCy + 50);
         ctx.fillText('for Main Menu', ctrlCx, ctrlCy + 68);
+        ctx.restore();
     }
-    ctx.restore(); // end right clip
 
     ctx.textAlign = 'left';
 }
