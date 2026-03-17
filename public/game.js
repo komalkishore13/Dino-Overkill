@@ -3,9 +3,13 @@ const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
 // ======== SFX ========
-const sfxJump = new Audio('jump.mp3');
+const sfxJump = new Audio('j2.mp3');
 sfxJump.volume = 0.5;
 function playJump() { sfxJump.currentTime = 0; sfxJump.play().catch(() => {}); }
+
+const sfxGameStart = new Audio('gamestart.mp3');
+sfxGameStart.volume = 0.5;
+function playGameStart() { sfxGameStart.currentTime = 0; sfxGameStart.play().catch(() => {}); }
 
 const sfxMenu = new Audio('mm_sfx.mp3');
 sfxMenu.volume = 0.4;
@@ -1984,6 +1988,7 @@ function resetGame() {
 
 function startIntro() {
     stopMenuMusic();
+    playGameStart();
     appState = 'playing';
     showScreen(null); // hide all overlays
     gameState = 'intro';
