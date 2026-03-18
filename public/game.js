@@ -478,7 +478,7 @@ const cactusClusterImg = new Image();
 cactusClusterImg.src = 'cactus_cluster_cropped.png';
 
 const shieldImg = new Image();
-shieldImg.src = 'shield.webp';
+shieldImg.src = 'shield.png';
 
 const dashImg = new Image();
 dashImg.src = 'dash.png';
@@ -819,7 +819,6 @@ function updateDash() {
     if (remaining <= 0) {
         // Dash ended — snap dino back + grant 2s immunity grace period
         sfxDash.pause(); sfxDash.currentTime = 0;
-        if (!immunityActive && !multiplierActive) resumeMenuMusic();
         dashActive = false;
         dashPhase = 'idle';
         dino.x = dashOriginalX;
@@ -959,7 +958,6 @@ function updateCollectibles() {
             const ctype = c.type;
             collectibles.splice(i, 1);
 
-            pauseMenuMusic();
             if (ctype === 'shield') {
                 playImmunity();
                 immunityActive = true;
@@ -983,7 +981,6 @@ function updateCollectibles() {
         if (Date.now() >= immunityEndTime) {
             immunityActive = false;
             sfxImmunity.pause(); sfxImmunity.currentTime = 0;
-            if (!dashActive && !multiplierActive) resumeMenuMusic();
         }
     }
 
@@ -992,7 +989,6 @@ function updateCollectibles() {
         if (Date.now() >= multiplierEndTime) {
             multiplierActive = false;
             sfxImmunity.pause(); sfxImmunity.currentTime = 0;
-            if (!dashActive && !immunityActive) resumeMenuMusic();
         }
     }
 
@@ -2404,7 +2400,6 @@ function updateIntro() {
         if (introRunFrames >= 25) {
             introPhase = 4;
             gameState = 'running';
-            playMenuMusic();
             dino.y = GROUND_Y;
             dino.velocityY = 0;
             dino.isJumping = false;
