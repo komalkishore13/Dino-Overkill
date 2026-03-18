@@ -43,6 +43,18 @@ const sfxDash = new Audio('dash.mp3');
 sfxDash.volume = 0.5;
 function playDash() { sfxDash.currentTime = 0; sfxDash.play().catch(() => {}); }
 
+const sfxJump = new Audio('jump1.mp3');
+sfxJump.volume = 0.5;
+function playJump() { sfxJump.currentTime = 0; sfxJump.play().catch(() => {}); }
+
+const sfxBg = new Audio('game_background.mp3');
+sfxBg.volume = 0.3;
+sfxBg.loop = true;
+function playBgMusic() { sfxBg.currentTime = 0; sfxBg.play().catch(() => {}); }
+function pauseBgMusic() { sfxBg.pause(); }
+function resumeBgMusic() { sfxBg.play().catch(() => {}); }
+function stopBgMusic() { sfxBg.pause(); sfxBg.currentTime = 0; }
+
 // Prevent iOS bounce/scroll/zoom globally
 document.addEventListener('touchmove', (e) => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
 const scoreDisplay = document.getElementById('score-display');
@@ -819,6 +831,7 @@ function updateDash() {
     if (remaining <= 0) {
         // Dash ended — snap dino back + grant 2s immunity grace period
         sfxDash.pause(); sfxDash.currentTime = 0;
+        if (!immunityActive && !multiplierActive) resumeBgMusic();
         dashActive = false;
         dashPhase = 'idle';
         dino.x = dashOriginalX;
@@ -958,6 +971,7 @@ function updateCollectibles() {
             const ctype = c.type;
             collectibles.splice(i, 1);
 
+            pauseBgMusic();
             if (ctype === 'shield') {
                 playImmunity();
                 immunityActive = true;
@@ -981,6 +995,7 @@ function updateCollectibles() {
         if (Date.now() >= immunityEndTime) {
             immunityActive = false;
             sfxImmunity.pause(); sfxImmunity.currentTime = 0;
+            if (!dashActive && !multiplierActive) resumeBgMusic();
         }
     }
 
@@ -989,6 +1004,7 @@ function updateCollectibles() {
         if (Date.now() >= multiplierEndTime) {
             multiplierActive = false;
             sfxImmunity.pause(); sfxImmunity.currentTime = 0;
+            if (!dashActive && !immunityActive) resumeBgMusic();
         }
     }
 
@@ -2072,6 +2088,7 @@ function startGame() {
 
 function onGameOver() {
     playHit();
+    stopBgMusic();
     stopMenuMusic();
     sfxImmunity.pause(); sfxImmunity.currentTime = 0;
     sfxDash.pause(); sfxDash.currentTime = 0;
@@ -2115,7 +2132,7 @@ document.addEventListener('keydown', (e) => {
             } else if (gameState === 'running' && !dino.isJumping) {
                 dino.velocityY = JUMP_FORCE;
                 dino.isJumping = true;
-
+                playJump();
             }
         }
     }
@@ -2173,7 +2190,7 @@ canvas.addEventListener('touchmove', (e) => {
         if (appState === 'playing' && gameState === 'running' && !dino.isJumping) {
             dino.velocityY = JUMP_FORCE;
             dino.isJumping = true;
-
+            playJump();
         }
         touchStartTime = 0; // consume swipe
     }
@@ -2217,7 +2234,7 @@ canvas.addEventListener('touchend', (e) => {
         } else if (appState === 'playing' && gameState === 'running' && !dino.isJumping) {
             dino.velocityY = JUMP_FORCE;
             dino.isJumping = true;
-
+            playJump();
         }
     }
 
@@ -2400,6 +2417,7 @@ function updateIntro() {
         if (introRunFrames >= 25) {
             introPhase = 4;
             gameState = 'running';
+            playBgMusic();
             dino.y = GROUND_Y;
             dino.velocityY = 0;
             dino.isJumping = false;
